@@ -283,7 +283,6 @@
   </footer>
 
   <script>
-    const API = 'https://api.chnwt.dev/thai-gold-api/latest';
     const INTERVAL_MS = 5 * 60 * 1000;
     let nextRefresh = Date.now() + INTERVAL_MS;
 
@@ -303,14 +302,31 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // ── Fetch with CORS proxy fallback ──
+    const URLS = [
+      'https://api.chnwt.dev/thai-gold-api/latest',
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest'),
+      'https://corsproxy.io/?' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest')
+    ];
+
+    async function fetchWithFallback() {
+      for (var i = 0; i < URLS.length; i++) {
+        try {
+          var res = await fetch(URLS[i], { cache: 'no-store' });
+          var data = await res.json();
+          if (data.status === 'success') return data;
+        } catch(e) { continue; }
+      }
+      throw new Error('All sources failed');
+    }
+
     // ── Fetch prices ──
     async function fetchPrices() {
       const dot  = document.getElementById('live-dot');
       const info = document.getElementById('update-info');
 
       try {
-        const res  = await fetch(API, { cache: 'no-store' });
-        const data = await res.json();
+        const data = await fetchWithFallback();
 
         if (data.status !== 'success') throw new Error('API error');
 
