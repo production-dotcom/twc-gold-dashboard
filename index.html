@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ราคาทองคำ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(160deg, #7a0000 0%, #b00000 50%, #8b0000 100%);
+      color: #fff;
+      font-family: 'Sarabun', 'Segoe UI', sans-serif;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 60px 40px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── Shop name banner ── */
+    .shop-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid rgba(245, 200, 66, 0.4);
+    }
+
+    .shop-logo {
+      height: 100px;
+      width: 100px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+    }
+
+    .shop-name {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #f5c842;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
+
+    .header-left .brand {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f5c842;
+      letter-spacing: 1px;
+    }
+
+    .header-left .sub {
+      font-size: 1rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    #clock {
+      font-size: 4.5rem;
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+
+    #date {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+
+    /* ── Cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      flex: 1;
+    }
+
+    .card {
+      background: rgba(0, 0, 0, 0.40);
+      border: 1px solid rgba(245, 200, 66, 0.25);
+      border-radius: 24px;
+      padding: 44px 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #f5c842, #e8a020);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #f5c842;
+      margin-bottom: 36px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 18px 0;
+    }
+
+    .price-row + .price-row {
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .price-label {
+      font-size: 1.6rem;
+      color: rgba(255,255,255,0.65);
+      font-weight: 400;
+    }
+
+    .price-value {
+      font-size: 3.6rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    .price-unit {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: inherit;
+      opacity: 0.6;
+      margin-left: 6px;
+    }
+
+    .buy  { color: #4ade80; }
+    .sell { color: #f87171; }
+
+    .loading .price-value { color: rgba(255,255,255,0.2); }
+
+    /* ── Footer ── */
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(245, 200, 66, 0.25);
+      color: rgba(255,255,255,0.45);
+      font-size: 1.05rem;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    .live-dot.error { background: #f87171; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    #update-info { color: rgba(255,255,255,0.5); }
+
+    .refresh-countdown {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── Fade animation on data refresh ── */
+    .flash {
+      animation: flash 0.6s ease-out;
+    }
+
+    @keyframes flash {
+      0%   { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="shop-banner">
+    <img class="shop-logo" src="twc-logo.jpg" alt="โลโก้ห้างทองทวีชัย๙">
+    <div class="shop-name">ห้างทองทวีชัย๙ (แต้จิ้นเฮง) สาย 5</div>
+  </div>
+
+  <header>
+    <div class="header-left">
+      <div class="brand">ราคาทองคำไทย</div>
+      <div class="sub">Thai Gold Price · สมาคมค้าทองคำ</div>
+    </div>
+    <div class="header-right">
+      <div id="clock">--:--:--</div>
+      <div id="date">--</div>
+    </div>
+  </header>
+
+  <div class="cards">
+    <!-- ทองรูปพรรณ -->
+    <div class="card loading" id="card-gold">
+      <div class="card-icon">🥇</div>
+      <div class="card-title">ทองรูปพรรณ 96.5%</div>
+      <div class="price-row">
+        <span class="price-label">ราคารับซื้อ</span>
+        <span class="buy">
+          <span class="price-value" id="gold-buy">กำลังโหลด</span>
+          <span class="price-unit buy">บาท</span>
+        </span>
+      </div>
+      <div class="price-row">
+        <span class="price-label">ราคาขายออก</span>
+        <span class="sell">
+          <span class="price-value" id="gold-sell">กำลังโหลด</span>
+          <span class="price-unit sell">บาท</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ทองคำแท่ง -->
+    <div class="card loading" id="card-bar">
+      <div class="card-icon">📦</div>
+      <div class="card-title">ทองคำแท่ง 99.99%</div>
+      <div class="price-row">
+        <span class="price-label">ราคารับซื้อ</span>
+        <span class="buy">
+          <span class="price-value" id="bar-buy">กำลังโหลด</span>
+          <span class="price-unit buy">บาท</span>
+        </span>
+      </div>
+      <div class="price-row">
+        <span class="price-label">ราคาขายออก</span>
+        <span class="sell">
+          <span class="price-value" id="bar-sell">กำลังโหลด</span>
+          <span class="price-unit sell">บาท</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-left">
+      <div class="live-dot" id="live-dot"></div>
+      <span id="update-info">กำลังโหลดข้อมูล...</span>
+    </div>
+    <div class="refresh-countdown" id="countdown">รีเฟรชทุก 5 นาที</div>
+  </footer>
+
+  <script>
+    const API = 'https://api.chnwt.dev/thai-gold-api/latest';
+    const INTERVAL_MS = 5 * 60 * 1000;
+    let nextRefresh = Date.now() + INTERVAL_MS;
+
+    // ── Clock ──
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('date').textContent =
+        now.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      const remaining = Math.max(0, Math.round((nextRefresh - Date.now()) / 1000));
+      const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+      const s = String(remaining % 60).padStart(2, '0');
+      document.getElementById('countdown').textContent = `รีเฟรชใน ${m}:${s}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ── Fetch prices ──
+    async function fetchPrices() {
+      const dot  = document.getElementById('live-dot');
+      const info = document.getElementById('update-info');
+
+      try {
+        const res  = await fetch(API, { cache: 'no-store' });
+        const data = await res.json();
+
+        if (data.status !== 'success') throw new Error('API error');
+
+        const { price, update_date, update_time } = data.response;
+
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          el.textContent = val;
+          el.closest('.card')?.classList.remove('loading');
+          el.classList.add('flash');
+          el.addEventListener('animationend', () => el.classList.remove('flash'), { once: true });
+        };
+
+        set('gold-buy',  price.gold.buy);
+        set('gold-sell', price.gold.sell);
+        set('bar-buy',   price.gold_bar.buy);
+        set('bar-sell',  price.gold_bar.sell);
+
+        dot.className = 'live-dot';
+        info.textContent = `อัปเดตล่าสุด: ${update_date} ${update_time}`;
+
+      } catch (err) {
+        dot.className = 'live-dot error';
+        info.textContent = 'ไม่สามารถโหลดข้อมูลได้ — กำลังลองใหม่...';
+      }
+
+      nextRefresh = Date.now() + INTERVAL_MS;
+    }
+
+    fetchPrices();
+    setInterval(fetchPrices, INTERVAL_MS);
+  </script>
+</body>
+</html>
