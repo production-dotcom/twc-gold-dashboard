@@ -12,14 +12,38 @@
       background: linear-gradient(160deg, #7a0000 0%, #b00000 50%, #8b0000 100%);
       color: #fff;
       font-family: 'Sarabun', 'Segoe UI', sans-serif;
-      height: auto;
-      min-height: 100vh;
+      height: 100vh;
       width: 100vw;
       display: flex;
       flex-direction: column;
-      padding: 24px 20px 30px;
-      overflow-y: auto;
+      overflow: hidden;
       user-select: none;
+    }
+
+    /* ── Top half: price dashboard ── */
+    .dashboard-top {
+      flex: 0 0 50%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 20px 14px;
+      overflow-y: auto;
+    }
+
+    /* ── Bottom half: image slideshow ── */
+    .slideshow {
+      flex: 0 0 50%;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .slide-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 1;
+      transition: opacity 0.8s ease;
     }
 
     /* ── Shop name banner ── */
@@ -224,6 +248,8 @@
 </head>
 <body>
 
+  <div class="dashboard-top">
+
   <div class="shop-banner">
     <img class="shop-logo" src="twc-logo.jpg" alt="โลโก้ห้างทองทวีชัย๙">
     <div class="shop-name">ห้างทองทวีชัย๙ (แต้จิ้นเฮง) สาย 5</div>
@@ -289,6 +315,12 @@
     </div>
     <div class="refresh-countdown" id="countdown">รีเฟรชทุก 5 นาที</div>
   </footer>
+
+  </div>
+
+  <div class="slideshow">
+    <img class="slide-img" id="slideImg" src="slides/1.jpg" alt="สร้อยคอทอง 1 บาท">
+  </div>
 
   <script>
     const INTERVAL_MS = 5 * 60 * 1000;
@@ -396,6 +428,22 @@
 
     fetchPrices();
     setInterval(fetchPrices, INTERVAL_MS);
+
+    // ── Image slideshow ──
+    const SLIDE_COUNT = 58;
+    const SLIDE_INTERVAL_MS = 5000;
+    let slideIndex = 1;
+    const slideImg = document.getElementById('slideImg');
+
+    function nextSlide() {
+      slideImg.style.opacity = 0;
+      setTimeout(() => {
+        slideIndex = (slideIndex % SLIDE_COUNT) + 1;
+        slideImg.src = `slides/${slideIndex}.jpg`;
+        slideImg.style.opacity = 1;
+      }, 800);
+    }
+    setInterval(nextSlide, SLIDE_INTERVAL_MS);
   </script>
 </body>
 </html>
