@@ -317,22 +317,28 @@
     const proxy2 = (u) => 'https://corsproxy.io/?' + encodeURIComponent(u);
 
     const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const ORNAMENT_BUY_DISCOUNT = 4500;
 
     function parseOfficial(d) {
-      if (!d || !d.oM965_BuyPrice) return null;
+      if (!d || !d.bL_BuyPrice) return null;
       const t = new Date(d.asTime);
       return {
-        gold:     { buy: fmt(d.oM965_BuyPrice), sell: fmt(d.oM965_SellPrice) },
-        gold_bar: { buy: fmt(d.bL_BuyPrice),     sell: fmt(d.bL_SellPrice) },
+        gold:     { buy: fmt(d.bL_BuyPrice - ORNAMENT_BUY_DISCOUNT), sell: fmt(d.oM965_SellPrice) },
+        gold_bar: { buy: fmt(d.bL_BuyPrice),                         sell: fmt(d.bL_SellPrice) },
         update_date: t.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         update_time: 'เวลา ' + t.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.'
       };
     }
 
     function parseChnwt(d) {
-      if (d?.status !== 'success' || !d.response?.price?.gold?.buy) return null;
+      if (d?.status !== 'success' || !d.response?.price?.gold_bar?.buy) return null;
       const { price, update_date, update_time } = d.response;
-      return { gold: price.gold, gold_bar: price.gold_bar, update_date, update_time };
+      const barBuy = Number(String(price.gold_bar.buy).replace(/,/g, ''));
+      return {
+        gold:     { buy: fmt(barBuy - ORNAMENT_BUY_DISCOUNT), sell: price.gold.sell },
+        gold_bar: price.gold_bar,
+        update_date, update_time
+      };
     }
 
     const SOURCES = [
