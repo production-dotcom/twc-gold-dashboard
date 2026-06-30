@@ -212,6 +212,76 @@
       0%   { opacity: 0.3; }
       100% { opacity: 1; }
     }
+
+    /* ── Portrait / mobile layout ── */
+    @media (orientation: portrait), (max-width: 800px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        padding: 24px 20px 30px;
+        overflow-y: auto;
+      }
+
+      .shop-banner {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .shop-logo {
+        height: 72px;
+        width: 72px;
+      }
+
+      .shop-name {
+        font-size: 1.5rem;
+        text-align: center;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 4px;
+        margin-bottom: 24px;
+      }
+
+      .header-right {
+        text-align: center;
+      }
+
+      #clock {
+        font-size: 3rem;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        padding: 28px 28px;
+      }
+
+      .card-title {
+        font-size: 1.5rem;
+        margin-bottom: 24px;
+      }
+
+      .price-label {
+        font-size: 1.3rem;
+      }
+
+      .price-value {
+        font-size: 2.6rem;
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -309,15 +379,19 @@
       'https://corsproxy.io/?' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest')
     ];
 
+    function hasPrices(data) {
+      return data.status === 'success' && !!data.response?.price?.gold?.buy;
+    }
+
     async function fetchWithFallback() {
       for (var i = 0; i < URLS.length; i++) {
         try {
           var res = await fetch(URLS[i], { cache: 'no-store' });
           var data = await res.json();
-          if (data.status === 'success') return data;
+          if (hasPrices(data)) return data;
         } catch(e) { continue; }
       }
-      throw new Error('All sources failed');
+      throw new Error('No source returned prices');
     }
 
     // ── Fetch prices ──
@@ -327,9 +401,6 @@
 
       try {
         const data = await fetchWithFallback();
-
-        if (data.status !== 'success') throw new Error('API error');
-
         const { price, update_date, update_time } = data.response;
 
         const set = (id, val) => {
@@ -350,7 +421,7 @@
 
       } catch (err) {
         dot.className = 'live-dot error';
-        info.textContent = 'ไม่สามารถโหลดข้อมูลได้ — กำลังลองใหม่...';
+        info.textContent = 'รอราคาอัปเดตจากตลาด — กำลังลองใหม่...';
       }
 
       nextRefresh = Date.now() + INTERVAL_MS;
