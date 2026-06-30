@@ -12,47 +12,53 @@
       background: linear-gradient(160deg, #7a0000 0%, #b00000 50%, #8b0000 100%);
       color: #fff;
       font-family: 'Sarabun', 'Segoe UI', sans-serif;
-      height: 100vh;
+      height: auto;
+      min-height: 100vh;
       width: 100vw;
       display: flex;
       flex-direction: column;
-      padding: 24px 60px 40px;
-      overflow: hidden;
+      padding: 24px 20px 30px;
+      overflow-y: auto;
       user-select: none;
     }
 
     /* ── Shop name banner ── */
     .shop-banner {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 24px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 20px;
       padding-bottom: 16px;
       border-bottom: 2px solid rgba(245, 200, 66, 0.4);
     }
 
     .shop-logo {
-      height: 100px;
-      width: 100px;
+      height: 72px;
+      width: 72px;
       object-fit: contain;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
     }
 
     .shop-name {
-      font-size: 3rem;
+      font-size: 1.5rem;
       font-weight: 800;
       color: #f5c842;
       letter-spacing: 2px;
       text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      text-align: center;
     }
 
     /* ── Header ── */
     header {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 36px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 4px;
+      margin-bottom: 24px;
     }
 
     .header-left .brand {
@@ -69,11 +75,11 @@
     }
 
     .header-right {
-      text-align: right;
+      text-align: center;
     }
 
     #clock {
-      font-size: 4.5rem;
+      font-size: 3rem;
       font-weight: 300;
       line-height: 1;
       letter-spacing: 2px;
@@ -89,8 +95,8 @@
     /* ── Cards ── */
     .cards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
+      grid-template-columns: 1fr;
+      gap: 20px;
       flex: 1;
     }
 
@@ -98,7 +104,7 @@
       background: rgba(0, 0, 0, 0.40);
       border: 1px solid rgba(245, 200, 66, 0.25);
       border-radius: 24px;
-      padding: 44px 52px;
+      padding: 28px 28px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -121,10 +127,10 @@
     }
 
     .card-title {
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: #f5c842;
-      margin-bottom: 36px;
+      margin-bottom: 24px;
     }
 
     .price-row {
@@ -139,13 +145,13 @@
     }
 
     .price-label {
-      font-size: 1.6rem;
+      font-size: 1.3rem;
       color: rgba(255,255,255,0.65);
       font-weight: 400;
     }
 
     .price-value {
-      font-size: 3.6rem;
+      font-size: 2.6rem;
       font-weight: 700;
       letter-spacing: -1px;
     }
@@ -166,13 +172,15 @@
     /* ── Footer ── */
     footer {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
       margin-top: 28px;
       padding-top: 20px;
       border-top: 1px solid rgba(245, 200, 66, 0.25);
       color: rgba(255,255,255,0.45);
       font-size: 1.05rem;
+      text-align: center;
     }
 
     .footer-left {
@@ -211,76 +219,6 @@
     @keyframes flash {
       0%   { opacity: 0.3; }
       100% { opacity: 1; }
-    }
-
-    /* ── Portrait / mobile layout ── */
-    @media (orientation: portrait), (max-width: 800px) {
-      body {
-        height: auto;
-        min-height: 100vh;
-        padding: 24px 20px 30px;
-        overflow-y: auto;
-      }
-
-      .shop-banner {
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-
-      .shop-logo {
-        height: 72px;
-        width: 72px;
-      }
-
-      .shop-name {
-        font-size: 1.5rem;
-        text-align: center;
-      }
-
-      header {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 4px;
-        margin-bottom: 24px;
-      }
-
-      .header-right {
-        text-align: center;
-      }
-
-      #clock {
-        font-size: 3rem;
-      }
-
-      .cards {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .card {
-        padding: 28px 28px;
-      }
-
-      .card-title {
-        font-size: 1.5rem;
-        margin-bottom: 24px;
-      }
-
-      .price-label {
-        font-size: 1.3rem;
-      }
-
-      .price-value {
-        font-size: 2.6rem;
-      }
-
-      footer {
-        flex-direction: column;
-        gap: 8px;
-        text-align: center;
-      }
     }
   </style>
 </head>
@@ -326,7 +264,7 @@
     <!-- ทองคำแท่ง -->
     <div class="card loading" id="card-bar">
       <div class="card-icon">📦</div>
-      <div class="card-title">ทองคำแท่ง 99.99%</div>
+      <div class="card-title">ทองคำแท่ง 96.5%</div>
       <div class="price-row">
         <span class="price-label">ราคารับซื้อ</span>
         <span class="buy">
@@ -372,24 +310,48 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ── Fetch with CORS proxy fallback ──
-    const URLS = [
-      'https://api.chnwt.dev/thai-gold-api/latest',
-      'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest'),
-      'https://corsproxy.io/?' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest')
-    ];
+    // ── Data sources, each normalized to { gold:{buy,sell}, gold_bar:{buy,sell}, update_date, update_time } ──
+    const OFFICIAL_URL = 'https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false';
+    const CHNWT_URL = 'https://api.chnwt.dev/thai-gold-api/latest';
+    const proxy1 = (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u);
+    const proxy2 = (u) => 'https://corsproxy.io/?' + encodeURIComponent(u);
 
-    function hasPrices(data) {
-      return data.status === 'success' && !!data.response?.price?.gold?.buy;
+    const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function parseOfficial(d) {
+      if (!d || !d.oM965_BuyPrice) return null;
+      const t = new Date(d.asTime);
+      return {
+        gold:     { buy: fmt(d.oM965_BuyPrice), sell: fmt(d.oM965_SellPrice) },
+        gold_bar: { buy: fmt(d.bL_BuyPrice),     sell: fmt(d.bL_SellPrice) },
+        update_date: t.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        update_time: 'เวลา ' + t.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.'
+      };
     }
 
+    function parseChnwt(d) {
+      if (d?.status !== 'success' || !d.response?.price?.gold?.buy) return null;
+      const { price, update_date, update_time } = d.response;
+      return { gold: price.gold, gold_bar: price.gold_bar, update_date, update_time };
+    }
+
+    const SOURCES = [
+      { url: proxy1(OFFICIAL_URL), parse: parseOfficial },
+      { url: proxy2(OFFICIAL_URL), parse: parseOfficial },
+      { url: OFFICIAL_URL,         parse: parseOfficial },
+      { url: CHNWT_URL,            parse: parseChnwt },
+      { url: proxy1(CHNWT_URL),    parse: parseChnwt },
+      { url: proxy2(CHNWT_URL),    parse: parseChnwt }
+    ];
+
     async function fetchWithFallback() {
-      for (var i = 0; i < URLS.length; i++) {
+      for (const src of SOURCES) {
         try {
-          var res = await fetch(URLS[i], { cache: 'no-store' });
-          var data = await res.json();
-          if (hasPrices(data)) return data;
-        } catch(e) { continue; }
+          const res = await fetch(src.url, { cache: 'no-store' });
+          const data = await res.json();
+          const parsed = src.parse(data);
+          if (parsed) return parsed;
+        } catch (e) { continue; }
       }
       throw new Error('No source returned prices');
     }
@@ -400,8 +362,7 @@
       const info = document.getElementById('update-info');
 
       try {
-        const data = await fetchWithFallback();
-        const { price, update_date, update_time } = data.response;
+        const { gold, gold_bar, update_date, update_time } = await fetchWithFallback();
 
         const set = (id, val) => {
           const el = document.getElementById(id);
@@ -411,10 +372,10 @@
           el.addEventListener('animationend', () => el.classList.remove('flash'), { once: true });
         };
 
-        set('gold-buy',  price.gold.buy);
-        set('gold-sell', price.gold.sell);
-        set('bar-buy',   price.gold_bar.buy);
-        set('bar-sell',  price.gold_bar.sell);
+        set('gold-buy',  gold.buy);
+        set('gold-sell', gold.sell);
+        set('bar-buy',   gold_bar.buy);
+        set('bar-sell',  gold_bar.sell);
 
         dot.className = 'live-dot';
         info.textContent = `อัปเดตล่าสุด: ${update_date} ${update_time}`;
