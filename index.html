@@ -319,7 +319,7 @@
   </div>
 
   <div class="slideshow">
-    <img class="slide-img" id="slideImg" src="slides/1.jpg" alt="สร้อยคอทอง 1 บาท">
+    <img class="slide-img" id="slideImg" src="slide-1.jpg" alt="สร้อยคอทอง 1 บาท">
   </div>
 
   <script>
@@ -439,7 +439,7 @@
       slideImg.style.opacity = 0;
       setTimeout(() => {
         slideIndex = (slideIndex % SLIDE_COUNT) + 1;
-        slideImg.src = `slides/${slideIndex}.jpg`;
+        slideImg.src = `slide-${slideIndex}.jpg`;
         slideImg.style.opacity = 1;
       }, 800);
     }
