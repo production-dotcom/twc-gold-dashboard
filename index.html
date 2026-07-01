@@ -230,6 +230,150 @@
       0%   { opacity: 0.3; }
       100% { opacity: 1; }
     }
+
+    /* ── Mini-game button ── */
+    .minigame-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      z-index: 10;
+      background: rgba(245, 200, 66, 0.92);
+      color: #7a0000;
+      border: none;
+      border-radius: 50%;
+      width: 5.5vh;
+      height: 5.5vh;
+      font-size: 2.8vh;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.55);
+      transition: transform 0.2s;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .minigame-btn:hover { transform: scale(1.15) rotate(20deg); }
+
+    /* ── Game overlay (covers slideshow area) ── */
+    .game-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      background: rgba(0,0,0,0.88);
+      align-items: center;
+      justify-content: center;
+    }
+    .game-overlay.open { display: flex; }
+
+    .game-panel {
+      background: linear-gradient(160deg, #6a0000 0%, #a00000 100%);
+      border: 2px solid #f5c842;
+      border-radius: 2vh;
+      padding: 1.5vh 1.8vh 1.8vh;
+      width: 92%;
+      max-height: 96%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1vh;
+      position: relative;
+    }
+
+    .game-title {
+      color: #f5c842;
+      font-size: 2.6vh;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .close-game-btn {
+      position: absolute;
+      top: 0.8vh;
+      right: 1.2vh;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.55);
+      font-size: 2.2vh;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .close-game-btn:hover { color: #fff; }
+
+    .wheel-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 1.2vh;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.6vh;
+      color: #f5c842;
+      z-index: 5;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.9));
+      line-height: 1;
+    }
+
+    #wheelCanvas {
+      display: block;
+      border-radius: 50%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 3px #f5c842;
+    }
+
+    .spin-btn {
+      background: linear-gradient(135deg, #f5c842, #e8a020);
+      color: #7a0000;
+      border: none;
+      border-radius: 30px;
+      padding: 0.9vh 5vw;
+      font-size: 2.2vh;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Sarabun', sans-serif;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      letter-spacing: 1px;
+    }
+    .spin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .prize-result {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5vh;
+      padding: 1vh 1.5vh;
+      background: rgba(0,0,0,0.35);
+      border-radius: 1.2vh;
+      border: 1px solid #f5c842;
+      width: 100%;
+      text-align: center;
+      animation: flash 0.5s ease-out;
+    }
+    .prize-result.show { display: flex; }
+
+    .prize-result img {
+      height: 7vh;
+      object-fit: contain;
+      border-radius: 0.8vh;
+    }
+
+    .prize-result-name {
+      color: #f5c842;
+      font-size: 2.4vh;
+      font-weight: 800;
+    }
+
+    .prize-result-points {
+      color: rgba(255,255,255,0.75);
+      font-size: 1.7vh;
+    }
   </style>
 </head>
 <body>
@@ -302,6 +446,27 @@
 
   <div class="slideshow">
     <img class="slide-img" id="slideImg" src="slide-1.jpg" alt="สร้อยคอทอง 1 บาท">
+
+    <!-- Mini-game button -->
+    <button class="minigame-btn" id="minigameBtn" onclick="openGame()" title="หมุนรับรางวัล">🎡</button>
+
+    <!-- Spinning wheel overlay -->
+    <div class="game-overlay" id="gameOverlay">
+      <div class="game-panel">
+        <button class="close-game-btn" onclick="closeGame()">✕</button>
+        <div class="game-title">🎡 หมุนรับรางวัล!</div>
+        <div class="wheel-wrap">
+          <div class="wheel-pointer">▼</div>
+          <canvas id="wheelCanvas"></canvas>
+        </div>
+        <button class="spin-btn" id="spinBtn" onclick="spin()">หมุน!</button>
+        <div class="prize-result" id="prizeResult">
+          <img id="prizeImg" src="" alt="รางวัล">
+          <div class="prize-result-name" id="prizeResultName"></div>
+          <div class="prize-result-points" id="prizeResultPoints"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -420,6 +585,138 @@
       }, 800);
     }
     setInterval(nextSlide, SLIDE_INTERVAL_MS);
+
+    // ── Spinning Wheel Mini-game ──
+    const PRIZES = [
+      { name: 'iPhone 17 Pro',        points: '1,250 คะแนน', img: 'prize-1.jpg', color: '#e74c3c' },
+      { name: 'JBL Go 4',             points: '40 คะแนน',    img: 'prize-2.jpg', color: '#3498db' },
+      { name: 'TV Samsung 55"',       points: '275 คะแนน',   img: 'prize-3.jpg', color: '#27ae60' },
+      { name: 'พัดลม Jiso-Life 1 Pro', points: '25 คะแนน',   img: 'prize-4.jpg', color: '#f39c12' },
+      { name: 'พัดลม ฮาตาริ 16นิ้ว',  points: '25 คะแนน',   img: 'prize-5.jpg', color: '#8e44ad' },
+      { name: 'ร่มพรีเมียม',           points: '3 คะแนน',    img: 'prize-6.jpg', color: '#16a085' },
+      { name: 'แก้วเก็บความเย็น',      points: '3 คะแนน',    img: 'prize-7.jpg', color: '#d35400' },
+    ];
+
+    let wheelAngle = 0;
+    let isSpinning = false;
+
+    function openGame() {
+      const overlay = document.getElementById('gameOverlay');
+      overlay.classList.add('open');
+      initCanvas();
+      drawWheel();
+      document.getElementById('prizeResult').classList.remove('show');
+      const btn = document.getElementById('spinBtn');
+      btn.disabled = false;
+      btn.textContent = 'หมุน!';
+    }
+
+    function closeGame() {
+      document.getElementById('gameOverlay').classList.remove('open');
+    }
+
+    function initCanvas() {
+      const canvas = document.getElementById('wheelCanvas');
+      const panel = document.querySelector('.game-panel');
+      const size = Math.min(Math.floor(panel.clientWidth * 0.72), 220);
+      canvas.width = size;
+      canvas.height = size;
+    }
+
+    function drawWheel() {
+      const canvas = document.getElementById('wheelCanvas');
+      const ctx = canvas.getContext('2d');
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = cx - 3;
+      const segAngle = (2 * Math.PI) / PRIZES.length;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      PRIZES.forEach((prize, i) => {
+        const sA = -Math.PI / 2 + wheelAngle + i * segAngle;
+        const eA = sA + segAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, sA, eA);
+        ctx.closePath();
+        ctx.fillStyle = prize.color;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(sA + segAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 3;
+        const fs = Math.max(8, Math.floor(r * 0.1));
+        ctx.font = `bold ${fs}px Sarabun, sans-serif`;
+        ctx.fillText(prize.name, r - 6, fs * 0.35);
+        ctx.restore();
+      });
+
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(10, r * 0.09), 0, 2 * Math.PI);
+      ctx.fillStyle = '#f5c842';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function spin() {
+      if (isSpinning) return;
+      isSpinning = true;
+      document.getElementById('spinBtn').disabled = true;
+      document.getElementById('prizeResult').classList.remove('show');
+
+      const segAngle = (2 * Math.PI) / PRIZES.length;
+      const targetIndex = Math.floor(Math.random() * PRIZES.length);
+      const extraSpins = (5 + Math.floor(Math.random() * 5)) * 2 * Math.PI;
+      const desiredNorm = (2 * Math.PI - targetIndex * segAngle + segAngle * (0.3 + Math.random() * 0.4)) % (2 * Math.PI);
+      const curNorm = ((wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      let delta = desiredNorm - curNorm;
+      if (delta < 0) delta += 2 * Math.PI;
+
+      const totalSpin = extraSpins + delta;
+      const startAngle = wheelAngle;
+      const duration = 3800 + Math.random() * 1000;
+      const startTime = performance.now();
+
+      function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+      function animate(now) {
+        const t = Math.min((now - startTime) / duration, 1);
+        wheelAngle = startAngle + totalSpin * easeOut(t);
+        drawWheel();
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          wheelAngle = startAngle + totalSpin;
+          isSpinning = false;
+          showResult(targetIndex);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showResult(index) {
+      const prize = PRIZES[index];
+      document.getElementById('prizeImg').src = prize.img;
+      document.getElementById('prizeResultName').textContent = '🎉 ' + prize.name;
+      document.getElementById('prizeResultPoints').textContent = prize.points;
+      document.getElementById('prizeResult').classList.add('show');
+      const btn = document.getElementById('spinBtn');
+      btn.textContent = 'หมุนอีกครั้ง';
+      btn.disabled = false;
+    }
 
   </script>
 </body>
