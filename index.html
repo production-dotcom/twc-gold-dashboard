@@ -587,22 +587,30 @@
     setInterval(nextSlide, SLIDE_INTERVAL_MS);
 
     // ── Spinning Wheel Mini-game ──
+    // blank: true = ช่องว่าง (ไม่ได้รับรางวัล)
     const PRIZES = [
-      { name: 'iPhone 17 Pro',        points: '1,250 คะแนน', img: 'prize-1.jpg', color: '#e74c3c' },
-      { name: 'JBL Go 4',             points: '40 คะแนน',    img: 'prize-2.jpg', color: '#3498db' },
-      { name: 'TV Samsung 55"',       points: '275 คะแนน',   img: 'prize-3.jpg', color: '#27ae60' },
+      { name: 'ช่องว่าง',              points: '',             img: '',            color: '#444', blank: true },
+      { name: 'iPhone 17 Pro',         points: '1,250 คะแนน', img: 'prize-1.jpg', color: '#e74c3c' },
+      { name: 'JBL Go 4',              points: '40 คะแนน',    img: 'prize-2.jpg', color: '#3498db' },
+      { name: 'TV Samsung 55"',        points: '275 คะแนน',   img: 'prize-3.jpg', color: '#27ae60' },
+      { name: 'ช่องว่าง',              points: '',             img: '',            color: '#444', blank: true },
       { name: 'พัดลม Jiso-Life 1 Pro', points: '25 คะแนน',   img: 'prize-4.jpg', color: '#f39c12' },
-      { name: 'พัดลม ฮาตาริ 16นิ้ว',  points: '25 คะแนน',   img: 'prize-5.jpg', color: '#8e44ad' },
-      { name: 'ร่มพรีเมียม',           points: '3 คะแนน',    img: 'prize-6.jpg', color: '#16a085' },
-      { name: 'แก้วเก็บความเย็น',      points: '3 คะแนน',    img: 'prize-7.jpg', color: '#d35400' },
+      { name: 'พัดลม ฮาตาริ 16นิ้ว',  points: '25 คะแนน',    img: 'prize-5.jpg', color: '#8e44ad' },
+      { name: 'ร่มพรีเมียม',            points: '3 คะแนน',    img: 'prize-6.jpg', color: '#16a085' },
+      { name: 'แก้วเก็บความเย็น',       points: '3 คะแนน',    img: 'prize-7.jpg', color: '#d35400' },
     ];
+
+    const BLANK_INDICES = PRIZES.map((p, i) => p.blank ? i : -1).filter(i => i >= 0);
+    const PRIZE_INDICES = PRIZES.map((p, i) => !p.blank ? i : -1).filter(i => i >= 0);
 
     let wheelAngle = 0;
     let isSpinning = false;
+    let spinCount = 0; // 0 = first spin (lands blank), 1 = second spin (lands prize)
 
     function openGame() {
       const overlay = document.getElementById('gameOverlay');
       overlay.classList.add('open');
+      spinCount = 0;
       initCanvas();
       drawWheel();
       document.getElementById('prizeResult').classList.remove('show');
@@ -651,12 +659,12 @@
         ctx.translate(cx, cy);
         ctx.rotate(sA + segAngle / 2);
         ctx.textAlign = 'right';
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = prize.blank ? 'rgba(255,255,255,0.35)' : '#fff';
         ctx.shadowColor = 'rgba(0,0,0,0.8)';
         ctx.shadowBlur = 3;
         const fs = Math.max(8, Math.floor(r * 0.1));
         ctx.font = `bold ${fs}px Sarabun, sans-serif`;
-        ctx.fillText(prize.name, r - 6, fs * 0.35);
+        ctx.fillText(prize.blank ? '—' : prize.name, r - 6, fs * 0.35);
         ctx.restore();
       });
 
@@ -670,14 +678,8 @@
       ctx.stroke();
     }
 
-    function spin() {
-      if (isSpinning) return;
-      isSpinning = true;
-      document.getElementById('spinBtn').disabled = true;
-      document.getElementById('prizeResult').classList.remove('show');
-
+    function spinToIndex(targetIndex, onDone) {
       const segAngle = (2 * Math.PI) / PRIZES.length;
-      const targetIndex = Math.floor(Math.random() * PRIZES.length);
       const extraSpins = (5 + Math.floor(Math.random() * 5)) * 2 * Math.PI;
       const desiredNorm = (2 * Math.PI - targetIndex * segAngle + segAngle * (0.3 + Math.random() * 0.4)) % (2 * Math.PI);
       const curNorm = ((wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -700,21 +702,57 @@
         } else {
           wheelAngle = startAngle + totalSpin;
           isSpinning = false;
-          showResult(targetIndex);
+          onDone();
         }
       }
 
       requestAnimationFrame(animate);
     }
 
+    function spin() {
+      if (isSpinning) return;
+      isSpinning = true;
+      document.getElementById('spinBtn').disabled = true;
+      document.getElementById('prizeResult').classList.remove('show');
+
+      if (spinCount === 0) {
+        // First spin → forced to land on a blank slot
+        const targetIndex = BLANK_INDICES[Math.floor(Math.random() * BLANK_INDICES.length)];
+        spinToIndex(targetIndex, () => {
+          spinCount = 1;
+          showBlank();
+        });
+      } else {
+        // Second spin → land on a real prize
+        const targetIndex = PRIZE_INDICES[Math.floor(Math.random() * PRIZE_INDICES.length)];
+        spinToIndex(targetIndex, () => {
+          spinCount = 0;
+          showResult(targetIndex);
+        });
+      }
+    }
+
+    function showBlank() {
+      const result = document.getElementById('prizeResult');
+      document.getElementById('prizeImg').style.display = 'none';
+      document.getElementById('prizeResultName').textContent = '😢 ไม่ได้รับรางวัล';
+      document.getElementById('prizeResultPoints').textContent = 'ลองโชคอีกครั้ง!';
+      result.classList.add('show');
+      const btn = document.getElementById('spinBtn');
+      btn.textContent = 'หมุนอีกครั้ง!';
+      btn.disabled = false;
+    }
+
     function showResult(index) {
       const prize = PRIZES[index];
-      document.getElementById('prizeImg').src = prize.img;
+      const img = document.getElementById('prizeImg');
+      img.src = prize.img;
+      img.style.display = '';
       document.getElementById('prizeResultName').textContent = '🎉 ' + prize.name;
       document.getElementById('prizeResultPoints').textContent = prize.points;
       document.getElementById('prizeResult').classList.add('show');
       const btn = document.getElementById('spinBtn');
-      btn.textContent = 'หมุนอีกครั้ง';
+      btn.textContent = 'เริ่มใหม่';
       btn.disabled = false;
     }
 
