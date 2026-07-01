@@ -103,27 +103,6 @@
       margin-top: 1px;
     }
 
-    .header-right {
-      position: absolute;
-      top: 6px;
-      right: 10px;
-      text-align: right;
-    }
-
-    #clock {
-      font-size: 2.4vh;
-      font-weight: 300;
-      line-height: 1;
-      letter-spacing: 0.5px;
-      color: #fff;
-    }
-
-    #date {
-      font-size: 1.1vh;
-      color: rgba(255,255,255,0.6);
-      margin-top: 0.2vh;
-    }
-
     /* ── Cards ── */
     .cards {
       display: grid;
@@ -267,10 +246,6 @@
       <div class="brand">ราคาทองคำไทย</div>
       <div class="sub">Thai Gold Price · สมาคมค้าทองคำ</div>
     </div>
-    <div class="header-right">
-      <div id="clock">--:--:--</div>
-      <div id="date">--</div>
-    </div>
   </header>
 
   <div class="cards">
@@ -329,29 +304,19 @@
     <img class="slide-img" id="slideImg" src="slide-1.jpg" alt="สร้อยคอทอง 1 บาท">
   </div>
 
-  <audio id="bgm" loop>
-    <source src="bgm.mp3" type="audio/mpeg">
-  </audio>
-
   <script>
     const INTERVAL_MS = 5 * 60 * 1000;
     let nextRefresh = Date.now() + INTERVAL_MS;
 
-    // ── Clock ──
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('clock').textContent =
-        now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      document.getElementById('date').textContent =
-        now.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
+    // ── Countdown ──
+    function updateCountdown() {
       const remaining = Math.max(0, Math.round((nextRefresh - Date.now()) / 1000));
       const m = String(Math.floor(remaining / 60)).padStart(2, '0');
       const s = String(remaining % 60).padStart(2, '0');
       document.getElementById('countdown').textContent = `รีเฟรชใน ${m}:${s}`;
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
 
     // ── Data sources, each normalized to { gold:{buy,sell}, gold_bar:{buy,sell}, update_date, update_time } ──
     const OFFICIAL_URL = 'https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false';
@@ -456,16 +421,6 @@
     }
     setInterval(nextSlide, SLIDE_INTERVAL_MS);
 
-    // ── Background music ──
-    const bgm = document.getElementById('bgm');
-    function tryPlayBgm() {
-      bgm.play().catch(() => {
-        const resume = () => { bgm.play(); };
-        document.addEventListener('click', resume, { once: true });
-        document.addEventListener('touchstart', resume, { once: true });
-      });
-    }
-    tryPlayBgm();
   </script>
 </body>
 </html>
