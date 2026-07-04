@@ -706,7 +706,7 @@
       <img class="prize-reveal-img" id="prizeRevealImg" src="" alt="รางวัล">
       <div class="prize-reveal-name" id="prizeRevealName"></div>
       <div class="prize-reveal-value" id="prizeRevealValue"></div>
-      <div class="prize-reveal-hint">แตะเพื่อปิด</div>
+      <div class="prize-reveal-hint" id="prizeRevealHint">แตะเพื่อปิด</div>
     </div>
   </div>
 
@@ -963,16 +963,35 @@
     }
 
     // ── Full-screen prize reveal ──
+    let prizeRevealTimer    = null;
+    let prizeRevealInterval = null;
+
     function openPrizeReveal(prize) {
-      document.getElementById('prizeRevealImg').src   = prize.img;
-      document.getElementById('prizeRevealName').textContent  = prize.name;
-      document.getElementById('prizeRevealValue').textContent = prize.points;
+      document.getElementById('prizeRevealImg').src            = prize.img;
+      document.getElementById('prizeRevealName').textContent   = prize.name;
+      document.getElementById('prizeRevealValue').textContent  = prize.points;
       const overlay = document.getElementById('prizeRevealOverlay');
       overlay.classList.add('open');
       launchConfetti(overlay);
+      // Countdown + auto-close after 15 s
+      let secs = 15;
+      const hint = document.getElementById('prizeRevealHint');
+      hint.textContent = `แตะเพื่อปิด · ${secs}s`;
+      clearInterval(prizeRevealInterval);
+      prizeRevealInterval = setInterval(() => {
+        secs--;
+        if (hint) hint.textContent = secs > 0 ? `แตะเพื่อปิด · ${secs}s` : 'กำลังปิด...';
+      }, 1000);
+      clearTimeout(prizeRevealTimer);
+      prizeRevealTimer = setTimeout(closePrizeReveal, 15000);
     }
 
     function closePrizeReveal() {
+      clearTimeout(prizeRevealTimer);
+      clearInterval(prizeRevealInterval);
+      prizeRevealTimer = prizeRevealInterval = null;
+      const hint = document.getElementById('prizeRevealHint');
+      if (hint) hint.textContent = 'แตะเพื่อปิด';
       document.getElementById('prizeRevealOverlay').classList.remove('open');
     }
 
@@ -983,6 +1002,19 @@
     const SLOT_STOPS = [1400, 2700, 4400]; // ms ที่แต่ละรีลหยุด (รีลสุดท้ายช้ากว่า = ลุ้นกว่า)
 
     let slotSpinning = false;
+    let spinCount    = 0; // รีเซ็ตทุกครั้งที่เปิดเกม; รอบ 1-2 บังคับแพ้, รอบ 3+ ลุ้นจริง
+
+    function showNoWin() {
+      const img = document.getElementById('prizeImg');
+      img.style.display = 'none';
+      const remaining = 3 - spinCount;
+      document.getElementById('prizeResultName').textContent  = '😅 เกือบได้แล้ว!';
+      document.getElementById('prizeResultPoints').textContent =
+        remaining > 0 ? `อีก ${remaining} ครั้งมีสิทธิ์ลุ้นรางวัล!` : 'ลองอีกครั้ง!';
+      document.getElementById('prizeResult').classList.add('show');
+      const btn = document.getElementById('spinBtn');
+      btn.innerHTML = '🎰<br>SPIN'; btn.disabled = false;
+    }
 
     function getItemH() { return window.innerHeight * 0.09; } // 9vh in px
 
@@ -1035,6 +1067,7 @@
     }
 
     function openGame() {
+      spinCount = 0; // เริ่มนับใหม่ทุกครั้งที่เปิดเกม
       document.getElementById('gameOverlay').classList.add('open');
       initSlot();
       document.getElementById('prizeResult').classList.remove('show');
@@ -1087,6 +1120,7 @@
     function spin() {
       if (slotSpinning) return;
       slotSpinning = true;
+      spinCount++;
       document.getElementById('spinBtn').disabled = true;
       document.getElementById('prizeResult').classList.remove('show');
       // Reset reel glow
@@ -1099,18 +1133,28 @@
       const slotReelsEl = document.getElementById('slotReels');
       slotReelsEl.classList.add('spinning');
 
-      const prizeIndex    = weightedRandom();
-      const prize         = PRIZES[prizeIndex];
-      const winnerSlotIdx = SLOT_ITEMS.indexOf(prize);
-
       const DECOYS = PRIZES.filter(p => !p.blank && p.weight === 0);
       const decoy  = DECOYS[Math.floor(Math.random() * DECOYS.length)];
       const decoySlotIdx = SLOT_ITEMS.indexOf(decoy);
 
-      const nearMiss = Math.random() < 0.65;
-      const targets  = nearMiss
-        ? [decoySlotIdx, decoySlotIdx, winnerSlotIdx]
-        : [winnerSlotIdx, winnerSlotIdx, winnerSlotIdx];
+      let prizeIndex, targets, nearMiss;
+
+      if (spinCount < 3) {
+        // รอบ 1-2: บังคับแพ้ — รีล 0,1 = decoy, รีล 2 = ไอเทมอื่น (ไม่ตรง)
+        nearMiss   = true;
+        prizeIndex = -1;
+        let thirdIdx;
+        do { thirdIdx = Math.floor(Math.random() * SLOT_N); } while (thirdIdx === decoySlotIdx);
+        targets = [decoySlotIdx, decoySlotIdx, thirdIdx];
+      } else {
+        // รอบ 3+: weighted random จริง (65% near-miss, 35% clean win)
+        prizeIndex = weightedRandom();
+        const winnerSlotIdx = SLOT_ITEMS.indexOf(PRIZES[prizeIndex]);
+        nearMiss = Math.random() < 0.65;
+        targets  = nearMiss
+          ? [decoySlotIdx, decoySlotIdx, winnerSlotIdx]
+          : [winnerSlotIdx, winnerSlotIdx, winnerSlotIdx];
+      }
 
       for (let r = 0; r < 3; r++) buildStrip(r, targets[r]);
 
@@ -1167,7 +1211,8 @@
                 if (++doneCount === 3) {
                   slotReelsEl.classList.remove('spinning');
                   slotSpinning = false;
-                  showResult(prizeIndex);
+                  if (prizeIndex >= 0) showResult(prizeIndex);
+                  else                 showNoWin();
                 }
               }
             }
