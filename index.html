@@ -589,15 +589,20 @@
     // ── Spinning Wheel Mini-game ──
     // blank: true = ช่องว่าง (ไม่ได้รับรางวัล)
     const PRIZES = [
-      { name: 'ช่องว่าง',              points: '',             img: '',            color: '#444', blank: true },
-      { name: 'iPhone 17 Pro',         points: '1,250 คะแนน', img: 'prize-1.jpg', color: '#e74c3c' },
-      { name: 'JBL Go 4',              points: '40 คะแนน',    img: 'prize-2.jpg', color: '#3498db' },
-      { name: 'TV Samsung 55"',        points: '275 คะแนน',   img: 'prize-3.jpg', color: '#27ae60' },
-      { name: 'ช่องว่าง',              points: '',             img: '',            color: '#444', blank: true },
-      { name: 'พัดลม Jiso-Life 1 Pro', points: '25 คะแนน',   img: 'prize-4.jpg', color: '#f39c12' },
-      { name: 'พัดลม ฮาตาริ 16นิ้ว',  points: '25 คะแนน',    img: 'prize-5.jpg', color: '#8e44ad' },
-      { name: 'ร่มพรีเมียม',            points: '3 คะแนน',    img: 'prize-6.jpg', color: '#16a085' },
-      { name: 'แก้วเก็บความเย็น',       points: '3 คะแนน',    img: 'prize-7.jpg', color: '#d35400' },
+      { name: 'ช่องว่าง',                   points: '',               img: '',             color: '#444', blank: true },
+      { name: 'iPhone 17 Pro',              points: '1,250 คะแนน',   img: 'prize-1.jpg',  color: '#e74c3c' },
+      { name: 'JBL Go 4',                   points: '40 คะแนน',      img: 'prize-2.jpg',  color: '#3498db' },
+      { name: 'TV Samsung 55"',             points: '275 คะแนน',     img: 'prize-3.jpg',  color: '#27ae60' },
+      { name: 'ชามซูโทเปีย',                points: 'มูลค่า 199 บาท', img: 'prize-4.jpg',  color: '#f39c12' },
+      { name: 'ชามมินนี้มิกกี้',             points: 'มูลค่า 199 บาท', img: 'prize-5.jpg',  color: '#9b59b6' },
+      { name: 'ชามสนูปปี้',                 points: 'มูลค่า 199 บาท', img: 'prize-6.jpg',  color: '#e91e63' },
+      { name: 'ช่องว่าง',                   points: '',               img: '',             color: '#444', blank: true },
+      { name: 'พัดลม ฮาตาริ',               points: '25 คะแนน',      img: 'prize-7.jpg',  color: '#00897b' },
+      { name: 'พัดลมเทอร์โบเจ็ท',           points: 'มูลค่า 990 บาท', img: 'prize-8.jpg',  color: '#1565c0' },
+      { name: 'ร่มพับอัตโนมัติ',             points: 'มูลค่า 390 บาท', img: 'prize-9.jpg',  color: '#558b2f' },
+      { name: 'เก้าอี้แคมปปิ้ง',            points: 'มูลค่า 390 บาท', img: 'prize-10.jpg', color: '#6d4c41' },
+      { name: 'แก้วเก็บความเย็น',            points: 'มูลค่า 590 บาท', img: 'prize-11.jpg', color: '#1976d2' },
+      { name: 'แก้วเก็บความเย็นหมาแมว',      points: 'มูลค่า 490 บาท', img: 'prize-12.jpg', color: '#d35400' },
     ];
 
     const BLANK_INDICES = PRIZES.map((p, i) => p.blank ? i : -1).filter(i => i >= 0);
