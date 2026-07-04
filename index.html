@@ -622,12 +622,10 @@
 
     let wheelAngle = 0;
     let isSpinning = false;
-    let spinCount = 0; // 0 = first spin (lands blank), 1 = second spin (lands prize)
 
     function openGame() {
       const overlay = document.getElementById('gameOverlay');
       overlay.classList.add('open');
-      spinCount = 0;
       initCanvas();
       drawWheel();
       document.getElementById('prizeResult').classList.remove('show');
@@ -732,21 +730,11 @@
       document.getElementById('spinBtn').disabled = true;
       document.getElementById('prizeResult').classList.remove('show');
 
-      if (spinCount === 0) {
-        // First spin → forced to land on a blank slot
-        const targetIndex = BLANK_INDICES[Math.floor(Math.random() * BLANK_INDICES.length)];
-        spinToIndex(targetIndex, () => {
-          spinCount = 1;
-          showBlank();
-        });
-      } else {
-        // Second spin → weighted random (ชาม 70%, ร่ม 10%, แก้ว 10%, เก้าอี้ 5%, พัดลมเทอร์โบ 5%)
-        const targetIndex = weightedRandom();
-        spinToIndex(targetIndex, () => {
-          spinCount = 0;
-          showResult(targetIndex);
-        });
-      }
+      // หมุนครั้งแรกได้รางวัลเลย
+      const targetIndex = weightedRandom();
+      spinToIndex(targetIndex, () => {
+        showResult(targetIndex);
+      });
     }
 
     function showBlank() {
