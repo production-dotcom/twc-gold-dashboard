@@ -423,6 +423,23 @@
     .slot-reels::before { top: calc(9vh);      }
     .slot-reels::after  { top: calc(18vh - 2px); }
 
+    /* Near-miss flash */
+    @keyframes slotFlash {
+      0%,100% { box-shadow: 0 0 24px rgba(245,200,66,0.25), inset 0 0 30px rgba(0,0,0,0.9); border-color: #f5c842; }
+      50%     { box-shadow: 0 0 60px rgba(245,200,66,1), 0 0 0 5px #f5c842, inset 0 0 10px rgba(255,200,0,0.2); border-color: #fff; }
+    }
+    .slot-reels.slot-flash { animation: slotFlash 0.25s ease-in-out 3; }
+
+    /* Shake on near-miss */
+    @keyframes slotShake {
+      0%,100% { transform: translateX(0); }
+      20%  { transform: translateX(-4px); }
+      40%  { transform: translateX(4px); }
+      60%  { transform: translateX(-3px); }
+      80%  { transform: translateX(3px); }
+    }
+    .slot-reels.slot-shake { animation: slotShake 0.45s ease-in-out; }
+
     .slot-reel-wrap {
       flex: 1;
       height: 27vh;
@@ -863,8 +880,8 @@
     // ── Slot Machine ──
     const SLOT_ITEMS = PRIZES.filter(p => !p.blank); // 12 prizes (รวม display-only)
     const SLOT_N     = SLOT_ITEMS.length;
-    const SLOT_LOOPS = [5, 6, 7];          // รอบที่แต่ละรีลหมุนก่อนหยุด
-    const SLOT_STOPS = [1700, 2500, 3300]; // ms ที่แต่ละรีลหยุด
+    const SLOT_LOOPS = [6, 7, 9];          // รอบที่แต่ละรีลหมุนก่อนหยุด
+    const SLOT_STOPS = [1400, 2700, 4400]; // ms ที่แต่ละรีลหยุด (รีลสุดท้ายช้ากว่า = ลุ้นกว่า)
 
     let slotSpinning = false;
 
@@ -918,6 +935,37 @@
       document.getElementById('gameOverlay').classList.remove('open');
     }
 
+    /* รีลแฟลชเมื่อได้ decoy 2 ช่องแรก */
+    function flashReels() {
+      const el = document.querySelector('.slot-reels');
+      el.classList.remove('slot-flash', 'slot-shake');
+      void el.offsetWidth; // reflow
+      el.classList.add('slot-flash');
+      setTimeout(() => {
+        el.classList.remove('slot-flash');
+        el.classList.add('slot-shake');
+        setTimeout(() => el.classList.remove('slot-shake'), 450);
+      }, 750);
+    }
+
+    /* เสียงลุ้น – ซ้ำ 3 ครั้ง pitch สูงขึ้น */
+    function playTease() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ac = new AC();
+      [0, 160, 320].forEach(delay => {
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.connect(g); g.connect(ac.destination);
+        o.type = 'square';
+        o.frequency.value = 480 + delay * 2;
+        g.gain.setValueAtTime(0.18, ac.currentTime + delay / 1000);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + delay / 1000 + 0.12);
+        o.start(ac.currentTime + delay / 1000);
+        o.stop(ac.currentTime + delay / 1000 + 0.13);
+      });
+    }
+
     function spin() {
       if (slotSpinning) return;
       slotSpinning = true;
@@ -926,9 +974,21 @@
 
       const prizeIndex    = weightedRandom();
       const prize         = PRIZES[prizeIndex];
-      const targetSlotIdx = SLOT_ITEMS.indexOf(prize);
+      const winnerSlotIdx = SLOT_ITEMS.indexOf(prize);
 
-      for (let r = 0; r < 3; r++) buildStrip(r, targetSlotIdx);
+      // รายการ decoy: รางวัล weight=0 (iPhone / JBL / TV / พัดลม ฮาตาริ)
+      const DECOYS = PRIZES.filter(p => !p.blank && p.weight === 0);
+      const decoy  = DECOYS[Math.floor(Math.random() * DECOYS.length)];
+      const decoySlotIdx = SLOT_ITEMS.indexOf(decoy);
+
+      // 65% near-miss (รีล 0,1 → decoy  |  รีล 2 → ผู้ชนะจริง)
+      // 35% clean win  (ทั้ง 3 รีล → ผู้ชนะจริง)
+      const nearMiss = Math.random() < 0.65;
+      const targets = nearMiss
+        ? [decoySlotIdx, decoySlotIdx, winnerSlotIdx]
+        : [winnerSlotIdx, winnerSlotIdx, winnerSlotIdx];
+
+      for (let r = 0; r < 3; r++) buildStrip(r, targets[r]);
 
       requestAnimationFrame(() => {
         const itemH     = getItemH();
@@ -938,11 +998,11 @@
 
         for (let r = 0; r < 3; r++) {
           const strip  = document.getElementById(`strip-${r}`);
-          const winPos = SLOT_LOOPS[r] * SLOT_N + targetSlotIdx;
-          const finalY = -(winPos - 1) * itemH;   // ช่องที่ winPos อยู่กลางรีล
+          const winPos = SLOT_LOOPS[r] * SLOT_N + targets[r];
+          const finalY = -(winPos - 1) * itemH;
           const stopMS = SLOT_STOPS[r];
 
-          (function(s, fy, st) {
+          (function(s, fy, st, reelIdx) {
             let lastItem = 0;
             function frame(now) {
               const t = Math.min((now - startTime) / st, 1);
@@ -955,11 +1015,16 @@
               } else {
                 s.style.transform = `translateY(${fy}px)`;
                 playStopSound();
+                // รีลที่ 1 หยุด + เป็น near-miss → แฟลช + เสียงลุ้น
+                if (reelIdx === 1 && nearMiss) {
+                  playTease();
+                  flashReels();
+                }
                 if (++doneCount === 3) { slotSpinning = false; showResult(prizeIndex); }
               }
             }
             requestAnimationFrame(frame);
-          })(strip, finalY, stopMS);
+          })(strip, finalY, stopMS, r);
         }
       });
     }
