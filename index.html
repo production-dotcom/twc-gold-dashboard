@@ -260,6 +260,79 @@
                 filter: drop-shadow(0 0 10px #f5c842); }
     }
 
+    /* ── Full-screen prize reveal ── */
+    .prize-reveal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.93);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .prize-reveal-overlay.open { display: flex; }
+
+    .prize-reveal-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.2vh;
+      padding: 3vh 4vw;
+      animation: prizeRevealFull 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+      pointer-events: none;
+    }
+    @keyframes prizeRevealFull {
+      0%   { transform: scale(0.25) rotate(-8deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .prize-reveal-congrats {
+      font-size: 5vh;
+      font-weight: 800;
+      color: #f5c842;
+      text-shadow: 0 0 30px rgba(245,200,66,0.9), 0 2px 8px rgba(0,0,0,0.8);
+      text-align: center;
+      font-family: 'Sarabun', sans-serif;
+    }
+
+    .prize-reveal-img {
+      max-height: 42vh;
+      max-width: 86vw;
+      object-fit: contain;
+      border-radius: 2.5vh;
+      box-shadow: 0 8px 50px rgba(0,0,0,0.7), 0 0 0 3px rgba(245,200,66,0.5);
+    }
+
+    .prize-reveal-name {
+      font-size: 4.5vh;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+      font-family: 'Sarabun', sans-serif;
+    }
+
+    .prize-reveal-value {
+      font-size: 2.8vh;
+      font-weight: 600;
+      color: #f5c842;
+      font-family: 'Sarabun', sans-serif;
+    }
+
+    .prize-reveal-hint {
+      font-size: 1.8vh;
+      color: rgba(255,255,255,0.35);
+      margin-top: 1vh;
+      font-family: 'Sarabun', sans-serif;
+      animation: hintBlink 1.8s ease-in-out infinite;
+    }
+    @keyframes hintBlink {
+      0%,100% { opacity: 0.35; }
+      50%      { opacity: 0.75; }
+    }
+
     /* ── Mini-game button ── */
     .minigame-btn {
       position: absolute;
@@ -498,6 +571,17 @@
     </div>
   </div>
 
+  <!-- Full-screen prize reveal overlay -->
+  <div class="prize-reveal-overlay" id="prizeRevealOverlay" onclick="closePrizeReveal()">
+    <div class="prize-reveal-inner">
+      <div class="prize-reveal-congrats">🎉 ยินดีด้วย! 🎉</div>
+      <img class="prize-reveal-img" id="prizeRevealImg" src="" alt="รางวัล">
+      <div class="prize-reveal-name" id="prizeRevealName"></div>
+      <div class="prize-reveal-value" id="prizeRevealValue"></div>
+      <div class="prize-reveal-hint">แตะเพื่อปิด</div>
+    </div>
+  </div>
+
   <script>
     const INTERVAL_MS = 5 * 60 * 1000;
     let nextRefresh = Date.now() + INTERVAL_MS;
@@ -689,22 +773,37 @@
     }
 
     // ── Confetti ──
-    function launchConfetti() {
-      const panel = document.querySelector('.game-panel');
+    function launchConfetti(container) {
+      const target = container || document.querySelector('.game-panel');
       const colors = ['#f5c842','#e74c3c','#3498db','#2ecc71','#9b59b6','#ff9800','#fff'];
-      for (let i = 0; i < 55; i++) {
+      const count = container ? 80 : 55;
+      for (let i = 0; i < count; i++) {
         const el = document.createElement('div');
         el.className = 'confetti-piece';
-        const s = 5 + Math.random() * 6;
+        const s = 5 + Math.random() * 8;
         el.style.cssText =
-          `left:${5+Math.random()*90}%;width:${s}px;height:${s}px;` +
+          `left:${2+Math.random()*96}%;width:${s}px;height:${s}px;` +
           `background:${colors[i % colors.length]};` +
           `border-radius:${Math.random() > 0.5 ? '50%' : '2px'};` +
-          `animation-duration:${0.8+Math.random()*0.9}s;` +
-          `animation-delay:${Math.random()*0.35}s`;
-        panel.appendChild(el);
-        setTimeout(() => el.remove(), 1900);
+          `animation-duration:${0.9+Math.random()*1.1}s;` +
+          `animation-delay:${Math.random()*0.5}s`;
+        target.appendChild(el);
+        setTimeout(() => el.remove(), 2200);
       }
+    }
+
+    // ── Full-screen prize reveal ──
+    function openPrizeReveal(prize) {
+      document.getElementById('prizeRevealImg').src   = prize.img;
+      document.getElementById('prizeRevealName').textContent  = prize.name;
+      document.getElementById('prizeRevealValue').textContent = prize.points;
+      const overlay = document.getElementById('prizeRevealOverlay');
+      overlay.classList.add('open');
+      launchConfetti(overlay);
+    }
+
+    function closePrizeReveal() {
+      document.getElementById('prizeRevealOverlay').classList.remove('open');
     }
 
     // ── Canvas helpers ──
@@ -880,6 +979,8 @@
       playWin();
       const btn = document.getElementById('spinBtn');
       btn.textContent = 'เริ่มใหม่'; btn.disabled = false;
+      // เปิดภาพใหญ่เต็มจอหลังจาก 400ms
+      setTimeout(() => openPrizeReveal(prize), 400);
     }
 
   </script>
