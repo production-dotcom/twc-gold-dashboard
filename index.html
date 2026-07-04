@@ -252,14 +252,6 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    /* ── Pointer pulse ── */
-    .wheel-pointer { animation: pointerPulse 1.5s ease-in-out infinite; }
-    @keyframes pointerPulse {
-      0%,100% { transform: translateX(-50%) scale(1); }
-      50%     { transform: translateX(-50%) scale(1.35) translateY(-2px);
-                filter: drop-shadow(0 0 10px #f5c842); }
-    }
-
     /* ── Full-screen prize reveal ── */
     .prize-reveal-overlay {
       display: none;
@@ -404,30 +396,91 @@
     }
     .close-game-btn:hover { color: #fff; }
 
-    .wheel-wrap {
-      position: relative;
+    /* ── Slot Machine ── */
+    .slot-reels {
       display: flex;
+      gap: 0.8vh;
+      border: 3px solid #f5c842;
+      border-radius: 1.5vh;
+      background: #080808;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 24px rgba(245,200,66,0.25), inset 0 0 30px rgba(0,0,0,0.9);
+      width: 100%;
+    }
+
+    /* Win-line bars */
+    .slot-reels::before,
+    .slot-reels::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: rgba(245,200,66,0.75);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .slot-reels::before { top: calc(9vh);      }
+    .slot-reels::after  { top: calc(18vh - 2px); }
+
+    .slot-reel-wrap {
+      flex: 1;
+      height: 27vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Fade masks */
+    .slot-reel-wrap::before,
+    .slot-reel-wrap::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 5vh;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .slot-reel-wrap::before { top: 0;    background: linear-gradient(to bottom, #080808 10%, transparent); }
+    .slot-reel-wrap::after  { bottom: 0; background: linear-gradient(to top,    #080808 10%, transparent); }
+
+    .slot-reel-strip {
+      display: flex;
+      flex-direction: column;
+      will-change: transform;
+    }
+
+    .slot-item {
+      height: 9vh;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding-top: 1.2vh;
+      gap: 0.3vh;
+      padding: 0.4vh 0.2vh;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+      box-sizing: border-box;
     }
 
-    .wheel-pointer {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2.6vh;
-      color: #f5c842;
-      z-index: 5;
-      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.9));
-      line-height: 1;
+    .slot-item img {
+      width: 90%;
+      height: 5.8vh;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
     }
 
-    #wheelCanvas {
-      display: block;
-      border-radius: 50%;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 3px #f5c842;
+    .slot-item-name {
+      font-size: max(7px, 1.1vh);
+      font-weight: 600;
+      color: rgba(255,255,255,0.82);
+      text-align: center;
+      line-height: 1.2;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 100%;
+      padding: 0 2px;
+      font-family: 'Sarabun', sans-serif;
     }
 
     .spin-btn {
@@ -557,9 +610,10 @@
       <div class="game-panel">
         <button class="close-game-btn" onclick="closeGame()">✕</button>
         <div class="game-title">🎡 หมุนรับรางวัล!</div>
-        <div class="wheel-wrap">
-          <div class="wheel-pointer">▼</div>
-          <canvas id="wheelCanvas"></canvas>
+        <div class="slot-reels">
+          <div class="slot-reel-wrap"><div class="slot-reel-strip" id="strip-0"></div></div>
+          <div class="slot-reel-wrap"><div class="slot-reel-strip" id="strip-1"></div></div>
+          <div class="slot-reel-wrap"><div class="slot-reel-strip" id="strip-2"></div></div>
         </div>
         <button class="spin-btn" id="spinBtn" onclick="spin()">หมุน!</button>
         <div class="prize-result" id="prizeResult">
@@ -806,166 +860,108 @@
       document.getElementById('prizeRevealOverlay').classList.remove('open');
     }
 
-    // ── Canvas helpers ──
-    function lightenColor(hex, amt) {
-      const n = parseInt(hex.replace('#',''), 16);
-      return `rgb(${Math.min(255,(n>>16)+amt)},${Math.min(255,((n>>8)&0xff)+amt)},${Math.min(255,(n&0xff)+amt)})`;
+    // ── Slot Machine ──
+    const SLOT_ITEMS = PRIZES.filter(p => !p.blank); // 12 prizes (รวม display-only)
+    const SLOT_N     = SLOT_ITEMS.length;
+    const SLOT_LOOPS = [5, 6, 7];          // รอบที่แต่ละรีลหมุนก่อนหยุด
+    const SLOT_STOPS = [1700, 2500, 3300]; // ms ที่แต่ละรีลหยุด
+
+    let slotSpinning = false;
+
+    function getItemH() { return window.innerHeight * 0.09; } // 9vh in px
+
+    function buildStrip(rIdx, targetSlotIdx) {
+      const strip = document.getElementById(`strip-${rIdx}`);
+      const total = SLOT_LOOPS[rIdx] * SLOT_N + targetSlotIdx + 3;
+      const frag  = document.createDocumentFragment();
+      for (let i = 0; i < total; i++) {
+        const p   = SLOT_ITEMS[i % SLOT_N];
+        const div = document.createElement('div');
+        div.className = 'slot-item';
+        div.innerHTML = p.img
+          ? `<img src="${p.img}" alt="${p.name}"><div class="slot-item-name">${p.name}</div>`
+          : `<div class="slot-item-name" style="opacity:.2">—</div>`;
+        frag.appendChild(div);
+      }
+      strip.innerHTML = '';
+      strip.appendChild(frag);
+      strip.style.transform = 'translateY(0)';
     }
 
-    let wheelAngle = 0;
-    let isSpinning = false;
+    function initSlot() {
+      for (let r = 0; r < 3; r++) buildStrip(r, (r * 4) % SLOT_N);
+    }
+
+    function playStopSound() {
+      try {
+        const ctx = getAudio();
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(140, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + 0.13);
+        gain.gain.setValueAtTime(0.13, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.18);
+      } catch(e) {}
+    }
 
     function openGame() {
       document.getElementById('gameOverlay').classList.add('open');
-      initCanvas();
-      drawWheel(false);
+      initSlot();
       document.getElementById('prizeResult').classList.remove('show');
       const btn = document.getElementById('spinBtn');
-      btn.disabled = false;
-      btn.textContent = 'หมุน!';
+      btn.disabled = false; btn.textContent = 'หมุน!';
     }
 
     function closeGame() {
       document.getElementById('gameOverlay').classList.remove('open');
     }
 
-    function initCanvas() {
-      const canvas = document.getElementById('wheelCanvas');
-      const panel = document.querySelector('.game-panel');
-      const size = Math.min(Math.floor(panel.clientWidth * 0.82), 260);
-      const dpr = window.devicePixelRatio || 1;
-      canvas.style.width  = size + 'px';
-      canvas.style.height = size + 'px';
-      canvas.width  = Math.round(size * dpr);
-      canvas.height = Math.round(size * dpr);
-      canvas.getContext('2d').scale(dpr, dpr);
-    }
-
-    function drawWheel(glow) {
-      const canvas = document.getElementById('wheelCanvas');
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      const size = canvas.width / dpr;
-      const cx = size / 2, cy = size / 2;
-      const r = cx - 9;
-      const N = PRIZES.length;
-      const segAngle = (2 * Math.PI) / N;
-
-      ctx.clearRect(0, 0, size, size);
-
-      // Glow ring while spinning
-      if (glow) {
-        ctx.save();
-        ctx.shadowBlur = 24; ctx.shadowColor = '#f5c842';
-        ctx.beginPath(); ctx.arc(cx, cy, r + 5, 0, 2*Math.PI);
-        ctx.strokeStyle = 'rgba(245,200,66,0.45)'; ctx.lineWidth = 6; ctx.stroke();
-        ctx.restore();
-      }
-
-      // Segments with gradient
-      PRIZES.forEach((prize, i) => {
-        const sA = -Math.PI/2 + wheelAngle + i * segAngle;
-        const eA = sA + segAngle;
-        const midA = sA + segAngle / 2;
-        const base = prize.blank ? '#555' : prize.color;
-        const g = ctx.createLinearGradient(
-          cx + r*0.2*Math.cos(midA), cy + r*0.2*Math.sin(midA),
-          cx + r*Math.cos(midA),     cy + r*Math.sin(midA)
-        );
-        g.addColorStop(0, lightenColor(base, 60));
-        g.addColorStop(1, base);
-
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, sA, eA);
-        ctx.closePath();
-        ctx.fillStyle = g; ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
-
-        // Label
-        ctx.save();
-        ctx.translate(cx, cy); ctx.rotate(midA);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = prize.blank ? 'rgba(255,255,255,0.25)' : '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4;
-        const fs = Math.max(7, Math.floor(r * 0.1));
-        ctx.font = `bold ${fs}px Sarabun, sans-serif`;
-        ctx.fillText(prize.blank ? '—' : prize.name, r - 10, fs * 0.38);
-        ctx.restore();
-      });
-
-      // Gold outer rim
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2*Math.PI);
-      ctx.strokeStyle = '#f5c842'; ctx.lineWidth = 5; ctx.stroke();
-
-      // Alternating rim dots
-      const dotN = N * 2;
-      for (let i = 0; i < dotN; i++) {
-        const a = (2*Math.PI/dotN)*i + wheelAngle;
-        ctx.beginPath();
-        ctx.arc(cx + (r-5)*Math.cos(a), cy + (r-5)*Math.sin(a), 2, 0, 2*Math.PI);
-        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,180,0.75)' : 'rgba(255,255,255,0.2)';
-        ctx.fill();
-      }
-
-      // Center cap (radial gradient)
-      const capR = Math.max(13, r * 0.1);
-      const capG = ctx.createRadialGradient(cx-capR*0.3, cy-capR*0.3, 1, cx, cy, capR);
-      capG.addColorStop(0, '#fff9c4'); capG.addColorStop(0.5, '#f5c842'); capG.addColorStop(1, '#b8720a');
-      ctx.beginPath(); ctx.arc(cx, cy, capR, 0, 2*Math.PI);
-      ctx.fillStyle = capG; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-    }
-
-    function spinToIndex(targetIndex, onDone) {
-      const segAngle = (2 * Math.PI) / PRIZES.length;
-      const extraSpins = (6 + Math.floor(Math.random() * 5)) * 2 * Math.PI;
-      const desiredNorm = (2*Math.PI - targetIndex*segAngle + segAngle*(0.3+Math.random()*0.4)) % (2*Math.PI);
-      const curNorm = ((wheelAngle % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
-      let delta = desiredNorm - curNorm;
-      if (delta < 0) delta += 2*Math.PI;
-
-      const totalSpin = extraSpins + delta;
-      const startAngle = wheelAngle;
-      const duration = 4200 + Math.random() * 1000;
-      const startTime = performance.now();
-      let lastTickAngle = wheelAngle;
-
-      function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
-
-      function animate(now) {
-        const t = Math.min((now - startTime) / duration, 1);
-        const speed = 1 - t;
-        wheelAngle = startAngle + totalSpin * easeOut(t);
-
-        // เสียง tick ต่อทุก 1 segment ที่ผ่าน
-        const crossed = Math.floor((wheelAngle - lastTickAngle) / segAngle);
-        if (crossed > 0) {
-          lastTickAngle += crossed * segAngle;
-          if (speed > 0.03) playTick(speed);
-        }
-
-        drawWheel(speed > 0.05);
-        if (t < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          wheelAngle = startAngle + totalSpin;
-          isSpinning = false;
-          drawWheel(false);
-          onDone();
-        }
-      }
-
-      requestAnimationFrame(animate);
-    }
-
     function spin() {
-      if (isSpinning) return;
-      isSpinning = true;
+      if (slotSpinning) return;
+      slotSpinning = true;
       document.getElementById('spinBtn').disabled = true;
       document.getElementById('prizeResult').classList.remove('show');
-      const targetIndex = weightedRandom();
-      spinToIndex(targetIndex, () => showResult(targetIndex));
+
+      const prizeIndex    = weightedRandom();
+      const prize         = PRIZES[prizeIndex];
+      const targetSlotIdx = SLOT_ITEMS.indexOf(prize);
+
+      for (let r = 0; r < 3; r++) buildStrip(r, targetSlotIdx);
+
+      requestAnimationFrame(() => {
+        const itemH     = getItemH();
+        let   doneCount = 0;
+        const startTime = performance.now();
+        function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+        for (let r = 0; r < 3; r++) {
+          const strip  = document.getElementById(`strip-${r}`);
+          const winPos = SLOT_LOOPS[r] * SLOT_N + targetSlotIdx;
+          const finalY = -(winPos - 1) * itemH;   // ช่องที่ winPos อยู่กลางรีล
+          const stopMS = SLOT_STOPS[r];
+
+          (function(s, fy, st) {
+            let lastItem = 0;
+            function frame(now) {
+              const t = Math.min((now - startTime) / st, 1);
+              const y = fy * easeOut(t);
+              s.style.transform = `translateY(${y}px)`;
+              const cur = Math.floor(-y / itemH);
+              if (cur > lastItem) { lastItem = cur; if (1 - t > 0.04) playTick(1 - t); }
+              if (t < 1) {
+                requestAnimationFrame(frame);
+              } else {
+                s.style.transform = `translateY(${fy}px)`;
+                playStopSound();
+                if (++doneCount === 3) { slotSpinning = false; showResult(prizeIndex); }
+              }
+            }
+            requestAnimationFrame(frame);
+          })(strip, finalY, stopMS);
+        }
+      });
     }
 
     function showResult(index) {
