@@ -1066,6 +1066,86 @@
       } catch(e) {}
     }
 
+    // ── Background Music (Web Audio, loop) ──
+    let bgPlaying    = false;
+    let bgLoopTimer  = null;
+    let bgMasterGain = null;
+
+    function ensureBgMaster() {
+      const ctx = getAudio();
+      if (!bgMasterGain) {
+        bgMasterGain = ctx.createGain();
+        bgMasterGain.gain.value = 0;
+        bgMasterGain.connect(ctx.destination);
+      }
+      return { ctx, master: bgMasterGain };
+    }
+
+    function bgNote(freq, startTime, dur, vol, wave) {
+      try {
+        const { ctx, master } = ensureBgMaster();
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = wave || 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0, startTime);
+        g.gain.linearRampToValueAtTime(vol, startTime + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, startTime + dur * 0.88);
+        o.connect(g); g.connect(master);
+        o.start(startTime); o.stop(startTime + dur + 0.04);
+      } catch(e) {}
+    }
+
+    function bgMusicLoop() {
+      if (!bgPlaying) return;
+      try {
+        const ctx = getAudio();
+        const t0 = ctx.currentTime + 0.04;
+        const B  = 60 / 140;   // beat at 140 BPM ≈ 0.4286 s
+        const E  = B / 2;       // eighth note ≈ 0.2143 s
+
+        // ── Melody (16 eighth notes = 8 beats = ~3.43 s per loop) ──
+        [523, 659, 784, 1047, 880, 784, 659, 523,
+         784, 659, 523, 392,  440, 523, 659, 0]
+        .forEach((f, i) => { if (f) bgNote(f, t0 + i*E, E*0.82, 0.085); });
+
+        // ── Bass (4 notes × 2 beats) ──
+        [[131,2],[196,2],[175,2],[131,2]]
+        .forEach(([f, beats], i) =>
+          bgNote(f, t0 + i*2*B, beats*B*0.72, 0.075, 'triangle'));
+
+        // ── Chord accent on beat 1 and beat 5 ──
+        [[523,0],[659,0],[784,0]].forEach(([f]) => bgNote(f, t0,        4*E, 0.032, 'triangle'));
+        [[523,0],[659,0],[784,0]].forEach(([f]) => bgNote(f, t0 + 8*E,  4*E, 0.028, 'triangle'));
+
+        const loopMs = 16 * E * 1000; // ≈ 3429 ms
+        bgLoopTimer = setTimeout(bgMusicLoop, loopMs - 55);
+      } catch(e) {}
+    }
+
+    function startBgMusic() {
+      if (bgPlaying) return;
+      bgPlaying = true;
+      try {
+        const { ctx, master } = ensureBgMaster();
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.setValueAtTime(0.001, ctx.currentTime);
+        master.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 1.2); // fade in 1.2 s
+      } catch(e) {}
+      bgMusicLoop();
+    }
+
+    function stopBgMusic() {
+      bgPlaying = false;
+      clearTimeout(bgLoopTimer);
+      bgLoopTimer = null;
+      try {
+        const { ctx, master } = ensureBgMaster();
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        const cur = master.gain.value;
+        master.gain.setValueAtTime(cur < 0.001 ? 0.001 : cur, ctx.currentTime);
+        master.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6); // fade out 0.6 s
+      } catch(e) {}
+    }
+
     function openGame() {
       spinCount = 0; // เริ่มนับใหม่ทุกครั้งที่เปิดเกม
       document.getElementById('gameOverlay').classList.add('open');
@@ -1079,9 +1159,11 @@
       if (sr) sr.classList.remove('spinning');
       const btn = document.getElementById('spinBtn');
       btn.disabled = false; btn.innerHTML = '🎰<br>SPIN';
+      startBgMusic();
     }
 
     function closeGame() {
+      stopBgMusic();
       document.getElementById('gameOverlay').classList.remove('open');
     }
 
