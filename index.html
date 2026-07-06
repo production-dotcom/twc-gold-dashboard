@@ -793,6 +793,7 @@
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const W = canvas.width / dpr, H = canvas.height / dpr;
+      if (W < 10) return;
       const cx = W/2, cy = H/2, r = W/2 - 4;
       const N = PRIZES.length, arc = (2*Math.PI)/N;
       ctx.clearRect(0, 0, W, H);
@@ -849,7 +850,7 @@
         if (seg !== lastSeg) { lastSeg = seg; playTick(1-t); }
         drawWheel(false);
         if (t < 1) requestAnimationFrame(frame);
-        else { wheelAngle = end; drawWheel(true); isSpinning = false; onDone(); }
+        else { wheelAngle = end; isSpinning = false; try { drawWheel(true); } catch(e) {} onDone(); }
       }
       requestAnimationFrame(frame);
     }
@@ -940,8 +941,7 @@
       document.getElementById('prizeResult').classList.remove('show');
       const btn = document.getElementById('spinBtn');
       btn.textContent = 'หมุน!'; btn.disabled = false;
-      initCanvas();
-      drawWheel(false);
+      requestAnimationFrame(() => { initCanvas(); drawWheel(false); });
       startBgMusic();
     }
 
