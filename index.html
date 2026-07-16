@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ราคาทอง</title>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background: #000;
       color: #1a0a00;
-      font-family: 'Sarabun', 'Segoe UI', sans-serif;
+      font-family: 'Noto Sans Thai', 'Segoe UI', sans-serif;
       height: 100vh;
       width: 100vw;
       display: flex;
@@ -113,10 +113,10 @@
       background: linear-gradient(90deg, transparent, rgba(170,120,0,0.5) 30%, rgba(170,120,0,0.5) 70%, transparent);
     }
 
-    /* Row colours – light cream palette for readability */
-    .row-buy-jewelry { background: #f4efe2; }
-    .row-buy-bar     { background: #eae5d8; }
-    .row-sell        { background: #f5e9db; }
+    /* Row colours – light gold palette */
+    .row-buy-jewelry { background: #fdf3c0; }
+    .row-buy-bar     { background: #faeaa0; }
+    .row-sell        { background: #fdf0b0; }
 
     .price-label-block {
       flex: 1;
@@ -247,7 +247,7 @@
     .wheel-wrap { position: relative; display: flex; align-items: center; justify-content: center; padding-top: 1.2vh; }
     .wheel-pointer { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 2.6vh; color: #f5c842; z-index: 5; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.9)); line-height: 1; }
     #wheelCanvas { display: block; border-radius: 50%; box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 3px #f5c842; }
-    .spin-btn { background: linear-gradient(135deg,#f5c842,#e8a020); color: #7a0000; border: none; border-radius: 30px; padding: 0.9vh 5vw; font-size: 2.2vh; font-weight: 800; cursor: pointer; font-family: 'Sarabun',sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.35); letter-spacing: 1px; }
+    .spin-btn { background: linear-gradient(135deg,#f5c842,#e8a020); color: #7a0000; border: none; border-radius: 30px; padding: 0.9vh 5vw; font-size: 2.2vh; font-weight: 800; cursor: pointer; font-family: 'Noto Sans Thai',sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.35); letter-spacing: 1px; }
     .spin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .prize-result { display: none; flex-direction: column; align-items: center; gap: 0.5vh; padding: 1vh 1.5vh; background: rgba(0,0,0,0.35); border-radius: 1.2vh; border: 1px solid #f5c842; width: 100%; text-align: center; }
     .prize-result.show { display: flex; animation: prizeReveal 0.45s cubic-bezier(0.175,0.885,0.32,1.275) both; }
