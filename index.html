@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ราคาทองคำ</title>
+  <title>ราคาทอง</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: linear-gradient(160deg, #7a0000 0%, #b00000 50%, #8b0000 100%);
-      color: #fff;
+      background: #000;
+      color: #1a0a00;
       font-family: 'Sarabun', 'Segoe UI', sans-serif;
       height: 100vh;
       width: 100vw;
@@ -20,183 +20,52 @@
       user-select: none;
     }
 
-    /* ── Top half: price dashboard ── */
-    .dashboard-top {
-      flex: 0 0 50%;
-      min-height: 0;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 10px 14px 8px;
-      overflow-y: auto;
-    }
-
-    /* ── Bottom half: image slideshow ── */
-    .slideshow {
-      flex: 0 0 50%;
-      position: relative;
-      background: #000;
-      overflow: hidden;
-    }
-
-    .slide-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      opacity: 1;
-      transition: opacity 0.8s ease;
-    }
-
-    /* ── Shop name banner ── */
-    .shop-banner {
+    /* ══════════════════════════════════════════
+       SECTION 1 – Header (Logo + Title)
+    ══════════════════════════════════════════ */
+    .header-section {
+      flex: 0 0 26vh;
+      background: linear-gradient(170deg, #5a0000 0%, #8b0000 55%, #7a0000 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.6vh;
-      margin-bottom: 1vh;
-      padding-bottom: 1vh;
-      border-bottom: 1px solid rgba(245, 200, 66, 0.4);
+      padding: 1.2vh 2vw;
+      gap: 0.5vh;
+      border-bottom: 3px solid #c8a000;
+      position: relative;
     }
 
-    .shop-logo {
-      position: absolute;
-      top: 6px;
-      left: 10px;
-      height: 6vh;
-      width: 6vh;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+    .logo-circle {
+      height: 12vh;
+      width: 12vh;
+      object-fit: cover;
+      border-radius: 50%;
+      filter: drop-shadow(0 3px 14px rgba(0,0,0,0.75));
+      flex-shrink: 0;
     }
 
-    .shop-name {
-      font-size: 2.8vh;
+    .header-title {
+      font-size: 5.5vh;
       font-weight: 800;
       color: #f5c842;
-      letter-spacing: 1px;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-      text-align: center;
+      letter-spacing: 1.5px;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.7);
+      line-height: 1;
     }
 
-    /* ── Header ── */
-    header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 0.3vh;
-      margin-bottom: 1vh;
+    .header-shopname {
+      font-size: 2.2vh;
+      font-weight: 600;
+      color: rgba(255,255,255,0.82);
+      letter-spacing: 0.3px;
     }
 
-    .header-left .brand {
-      font-size: 2.5vh;
-      font-weight: 700;
-      color: #f5c842;
-      letter-spacing: 0.5px;
-    }
-
-    .header-left .sub {
-      font-size: 1.3vh;
-      color: #999;
-      margin-top: 1px;
-    }
-
-    /* ── Cards ── */
-    .cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5vh;
-    }
-
-    .card {
-      background: rgba(0, 0, 0, 0.40);
-      border: 1px solid rgba(245, 200, 66, 0.25);
-      border-radius: 1.2vh;
-      padding: 1.5vh 1.8vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #f5c842, #e8a020);
-      border-radius: 1.2vh 1.2vh 0 0;
-    }
-
-    .card-icon {
-      font-size: 2.6vh;
-      margin-bottom: 0.3vh;
-    }
-
-    .card-title {
-      font-size: 2.3vh;
-      font-weight: 700;
-      color: #f5c842;
-      margin-bottom: 1vh;
-    }
-
-    .price-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 1vh 0;
-    }
-
-    .price-row + .price-row {
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .price-label {
-      font-size: 2vh;
-      color: rgba(255,255,255,0.65);
-      font-weight: 400;
-    }
-
-    .price-value {
-      font-size: 3.7vh;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .price-unit {
-      font-size: 1.4vh;
-      font-weight: 400;
-      color: inherit;
-      opacity: 0.6;
-      margin-left: 4px;
-    }
-
-    .buy  { color: #4ade80; }
-    .sell { color: #f87171; }
-
-    .loading .price-value { color: rgba(255,255,255,0.2); }
-
-    /* ── Footer ── */
-    footer {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3vh;
-      margin-top: 1vh;
-      padding-top: 1vh;
-      border-top: 1px solid rgba(245, 200, 66, 0.25);
-      color: rgba(255,255,255,0.45);
-      font-size: 1.6vh;
-      text-align: center;
-    }
-
-    .footer-left {
+    .header-update {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
+      margin-top: 0.2vh;
     }
 
     .live-dot {
@@ -205,124 +74,135 @@
       border-radius: 50%;
       background: #4ade80;
       animation: pulse 2.5s ease-in-out infinite;
+      flex-shrink: 0;
     }
-
     .live-dot.error { background: #f87171; animation: none; }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(0.85); }
+      50%       { opacity: 0.35; transform: scale(0.85); }
     }
 
-    #update-info { color: rgba(255,255,255,0.5); }
-
-    .refresh-countdown {
-      font-size: 1.3vh;
-      color: rgba(255,255,255,0.35);
+    #update-info {
+      font-size: 1.7vh;
+      color: rgba(255,255,255,0.58);
     }
 
-    /* ── Fade animation on data refresh ── */
+    /* ══════════════════════════════════════════
+       SECTIONS 2-4 – Price Rows
+    ══════════════════════════════════════════ */
+    .price-section {
+      flex: 0 0 42vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-row-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 5vw;
+      position: relative;
+    }
+
+    .price-row-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(170,120,0,0.5) 30%, rgba(170,120,0,0.5) 70%, transparent);
+    }
+
+    /* Row colours – light cream palette for readability */
+    .row-buy-jewelry { background: #f4efe2; }
+    .row-buy-bar     { background: #eae5d8; }
+    .row-sell        { background: #f5e9db; }
+
+    .price-label-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4vh;
+    }
+
+    .price-type {
+      font-size: 4.2vh;
+      font-weight: 800;
+      color: #3d1a00;
+      line-height: 1;
+    }
+
+    .price-subtype {
+      font-size: 2vh;
+      font-weight: 500;
+      color: #7a5000;
+    }
+
+    .price-number-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 0.7vw;
+    }
+
+    .price-number {
+      font-size: 9vh;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .price-number.buy  { color: #154d00; }
+    .price-number.sell { color: #850000; }
+
+    .price-unit-label {
+      font-size: 2.2vh;
+      font-weight: 500;
+      color: #7a5000;
+      padding-bottom: 0.8vh;
+    }
+
+    /* Flash animation on data refresh */
     .flash { animation: flash 0.6s ease-out; }
     @keyframes flash {
       0%   { opacity: 0.3; }
       100% { opacity: 1; }
     }
 
-    /* ── Confetti ── */
-    .confetti-piece {
-      position: absolute;
-      top: 0;
-      pointer-events: none;
-      z-index: 50;
-      animation: confettiFall linear forwards;
-    }
-    @keyframes confettiFall {
-      0%   { transform: translateY(-5px) rotate(0deg); opacity: 1; }
-      80%  { opacity: 1; }
-      100% { transform: translateY(200px) rotate(560deg); opacity: 0; }
-    }
-
-    /* ── Prize card reveal ── */
-    .prize-result.show {
-      animation: prizeReveal 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-    }
-    @keyframes prizeReveal {
-      0%   { transform: scale(0.5); opacity: 0; }
-      70%  { transform: scale(1.07); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* ── Full-screen prize reveal ── */
-    .prize-reveal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 300;
-      background: rgba(0,0,0,0.93);
+    /* ══════════════════════════════════════════
+       Footer bar
+    ══════════════════════════════════════════ */
+    .footer-bar {
+      flex: 0 0 3vh;
+      background: linear-gradient(90deg, #3d1a00 0%, #6a0000 50%, #3d1a00 100%);
+      display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      border-top: 1px solid rgba(200,160,0,0.35);
+    }
+
+    #countdown {
+      font-size: 1.6vh;
+      color: rgba(245,200,66,0.55);
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION 5 – Slideshow + Mini-game
+    ══════════════════════════════════════════ */
+    .slideshow {
+      flex: 1;
+      position: relative;
+      background: #000;
       overflow: hidden;
-    }
-    .prize-reveal-overlay.open { display: flex; }
-
-    .prize-reveal-inner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2.2vh;
-      padding: 3vh 4vw;
-      animation: prizeRevealFull 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-      pointer-events: none;
-    }
-    @keyframes prizeRevealFull {
-      0%   { transform: scale(0.25) rotate(-8deg); opacity: 0; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      min-height: 0;
     }
 
-    .prize-reveal-congrats {
-      font-size: 5vh;
-      font-weight: 800;
-      color: #f5c842;
-      text-shadow: 0 0 30px rgba(245,200,66,0.9), 0 2px 8px rgba(0,0,0,0.8);
-      text-align: center;
-      font-family: 'Sarabun', sans-serif;
-    }
-
-    .prize-reveal-img {
-      max-height: 42vh;
-      max-width: 86vw;
+    .slide-img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
-      border-radius: 2.5vh;
-      box-shadow: 0 8px 50px rgba(0,0,0,0.7), 0 0 0 3px rgba(245,200,66,0.5);
-    }
-
-    .prize-reveal-name {
-      font-size: 4.5vh;
-      font-weight: 800;
-      color: #fff;
-      text-align: center;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.8);
-      font-family: 'Sarabun', sans-serif;
-    }
-
-    .prize-reveal-value {
-      font-size: 2.8vh;
-      font-weight: 600;
-      color: #f5c842;
-      font-family: 'Sarabun', sans-serif;
-    }
-
-    .prize-reveal-hint {
-      font-size: 1.8vh;
-      color: rgba(255,255,255,0.35);
-      margin-top: 1vh;
-      font-family: 'Sarabun', sans-serif;
-      animation: hintBlink 1.8s ease-in-out infinite;
-    }
-    @keyframes hintBlink {
-      0%,100% { opacity: 0.35; }
-      50%      { opacity: 0.75; }
+      opacity: 1;
+      transition: opacity 0.8s ease;
     }
 
     /* ── Mini-game button ── */
@@ -369,83 +249,152 @@
     #wheelCanvas { display: block; border-radius: 50%; box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 3px #f5c842; }
     .spin-btn { background: linear-gradient(135deg,#f5c842,#e8a020); color: #7a0000; border: none; border-radius: 30px; padding: 0.9vh 5vw; font-size: 2.2vh; font-weight: 800; cursor: pointer; font-family: 'Sarabun',sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.35); letter-spacing: 1px; }
     .spin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .prize-result { display: none; flex-direction: column; align-items: center; gap: 0.5vh; padding: 1vh 1.5vh; background: rgba(0,0,0,0.35); border-radius: 1.2vh; border: 1px solid #f5c842; width: 100%; text-align: center; animation: flash 0.5s ease-out; }
-    .prize-result.show { display: flex; }
+    .prize-result { display: none; flex-direction: column; align-items: center; gap: 0.5vh; padding: 1vh 1.5vh; background: rgba(0,0,0,0.35); border-radius: 1.2vh; border: 1px solid #f5c842; width: 100%; text-align: center; }
+    .prize-result.show { display: flex; animation: prizeReveal 0.45s cubic-bezier(0.175,0.885,0.32,1.275) both; }
     .prize-result img { height: 7vh; object-fit: contain; border-radius: 0.8vh; }
     .prize-result-name { color: #f5c842; font-size: 2.4vh; font-weight: 800; }
     .prize-result-points { color: rgba(255,255,255,0.75); font-size: 1.7vh; }
+
+    @keyframes prizeReveal {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.07); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── Confetti ── */
+    .confetti-piece {
+      position: absolute;
+      top: 0;
+      pointer-events: none;
+      z-index: 50;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translateY(-5px) rotate(0deg); opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateY(200px) rotate(560deg); opacity: 0; }
+    }
+
+    /* ── Full-screen prize reveal ── */
+    .prize-reveal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.93);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .prize-reveal-overlay.open { display: flex; }
+
+    .prize-reveal-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.2vh;
+      padding: 3vh 4vw;
+      animation: prizeRevealFull 0.55s cubic-bezier(0.175,0.885,0.32,1.275) both;
+      pointer-events: none;
+    }
+    @keyframes prizeRevealFull {
+      0%   { transform: scale(0.25) rotate(-8deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .prize-reveal-congrats {
+      font-size: 5vh; font-weight: 800; color: #f5c842;
+      text-shadow: 0 0 30px rgba(245,200,66,0.9), 0 2px 8px rgba(0,0,0,0.8);
+      text-align: center; font-family: 'Sarabun', sans-serif;
+    }
+    .prize-reveal-img {
+      max-height: 42vh; max-width: 86vw; object-fit: contain;
+      border-radius: 2.5vh;
+      box-shadow: 0 8px 50px rgba(0,0,0,0.7), 0 0 0 3px rgba(245,200,66,0.5);
+    }
+    .prize-reveal-name {
+      font-size: 4.5vh; font-weight: 800; color: #fff; text-align: center;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.8); font-family: 'Sarabun', sans-serif;
+    }
+    .prize-reveal-value {
+      font-size: 2.8vh; font-weight: 600; color: #f5c842; font-family: 'Sarabun', sans-serif;
+    }
+    .prize-reveal-hint {
+      font-size: 1.8vh; color: rgba(255,255,255,0.35); margin-top: 1vh;
+      font-family: 'Sarabun', sans-serif; animation: hintBlink 1.8s ease-in-out infinite;
+    }
+    @keyframes hintBlink {
+      0%,100% { opacity: 0.35; }
+      50%      { opacity: 0.75; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="dashboard-top">
-
-  <div class="shop-banner">
-    <img class="shop-logo" src="twc-logo.jpg" alt="โลโก้ห้างทองทวีชัย๙">
-    <div class="shop-name">ห้างทองทวีชัย๙ (แต้จิ้นเฮง) สาย 5</div>
-  </div>
-
-  <header>
-    <div class="header-left">
-      <div class="brand">ราคาทอง</div>
-      <div class="sub">Thai Gold Price · สมาคมค้าทองคำ</div>
-    </div>
-  </header>
-
-  <div class="cards">
-    <!-- ทองรูปพรรณ -->
-    <div class="card loading" id="card-gold">
-      <div class="card-icon">🥇</div>
-      <div class="card-title">ทองรูปพรรณ 96.5%</div>
-      <div class="price-row">
-        <span class="price-label">ราคารับซื้อ</span>
-        <span class="buy">
-          <span class="price-value" id="gold-buy">กำลังโหลด</span>
-          <span class="price-unit buy">บาท</span>
-        </span>
-      </div>
-      <div class="price-row">
-        <span class="price-label">ราคาขายออก</span>
-        <span class="sell">
-          <span class="price-value" id="gold-sell">กำลังโหลด</span>
-          <span class="price-unit sell">บาท</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- ทองคำแท่ง -->
-    <div class="card loading" id="card-bar">
-      <div class="card-icon">📦</div>
-      <div class="card-title">ทองคำแท่ง 96.5%</div>
-      <div class="price-row">
-        <span class="price-label">ราคารับซื้อ</span>
-        <span class="buy">
-          <span class="price-value" id="bar-buy">กำลังโหลด</span>
-          <span class="price-unit buy">บาท</span>
-        </span>
-      </div>
-      <div class="price-row">
-        <span class="price-label">ราคาขายออก</span>
-        <span class="sell">
-          <span class="price-value" id="bar-sell">กำลังโหลด</span>
-          <span class="price-unit sell">บาท</span>
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <footer>
-    <div class="footer-left">
+  <!-- ══ SECTION 1: Header ══ -->
+  <div class="header-section">
+    <img class="logo-circle" src="twc-logo.jpg" alt="โลโก้ห้างทองทวีชัย๙">
+    <div class="header-title">ราคาทองคำวันนี้</div>
+    <div class="header-shopname">ห้างทองทวีชัย ๙ (แต้จิ้นเฮง) สาย 5</div>
+    <div class="header-update">
       <div class="live-dot" id="live-dot"></div>
       <span id="update-info">กำลังโหลดข้อมูล...</span>
     </div>
-    <div class="refresh-countdown" id="countdown">รีเฟรชทุก 5 นาที</div>
-  </footer>
+  </div>
+
+  <!-- ══ SECTIONS 2-4: Price Rows ══ -->
+  <div class="price-section">
+
+    <!-- รับซื้อ ทองรูปพรรณ -->
+    <div class="price-row-item row-buy-jewelry">
+      <div class="price-label-block">
+        <div class="price-type">รับซื้อ</div>
+        <div class="price-subtype">ทองรูปพรรณ 96.5%</div>
+      </div>
+      <div class="price-number-wrap">
+        <div class="price-number buy" id="gold-buy">—</div>
+        <div class="price-unit-label">บาท</div>
+      </div>
+    </div>
+
+    <!-- รับซื้อ ทองคำแท่ง -->
+    <div class="price-row-item row-buy-bar">
+      <div class="price-label-block">
+        <div class="price-type">รับซื้อ</div>
+        <div class="price-subtype">ทองคำแท่ง 96.5%</div>
+      </div>
+      <div class="price-number-wrap">
+        <div class="price-number buy" id="bar-buy">—</div>
+        <div class="price-unit-label">บาท</div>
+      </div>
+    </div>
+
+    <!-- ขายออก -->
+    <div class="price-row-item row-sell">
+      <div class="price-label-block">
+        <div class="price-type">ขายออก</div>
+        <div class="price-subtype">ทองรูปพรรณ / แท่ง</div>
+      </div>
+      <div class="price-number-wrap">
+        <div class="price-number sell" id="bar-sell">—</div>
+        <div class="price-unit-label">บาท</div>
+      </div>
+    </div>
 
   </div>
 
+  <!-- hidden: keeps JS set() happy for unused gold-sell -->
+  <span id="gold-sell" style="display:none"></span>
+
+  <!-- ══ Footer bar ══ -->
+  <div class="footer-bar">
+    <span id="countdown">รีเฟรชทุก 5 นาที</span>
+  </div>
+
+  <!-- ══ SECTION 5: Slideshow + Mini-game ══ -->
   <div class="slideshow">
-    <img class="slide-img" id="slideImg" src="slide-1.jpg" alt="สร้อยคอทอง 1 บาท">
+    <img class="slide-img" id="slideImg" src="slide-1.jpg" alt="สินค้าทอง">
 
     <!-- Mini-game button -->
     <button class="minigame-btn" id="minigameBtn" onclick="openGame()" title="หมุนรับรางวัล">🎡</button>
@@ -497,6 +446,7 @@
     // ── Data sources, each normalized to { gold:{buy,sell}, gold_bar:{buy,sell}, update_date, update_time } ──
     const OFFICIAL_URL = 'https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false';
     const CHNWT_URL = 'https://api.chnwt.dev/thai-gold-api/latest';
+
     const proxy1 = (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u);
     const proxy2 = (u) => 'https://corsproxy.io/?' + encodeURIComponent(u);
 
@@ -556,8 +506,8 @@
 
         const set = (id, val) => {
           const el = document.getElementById(id);
+          if (!el) return;
           el.textContent = val;
-          el.closest('.card')?.classList.remove('loading');
           el.classList.add('flash');
           el.addEventListener('animationend', () => el.classList.remove('flash'), { once: true });
         };
@@ -568,7 +518,7 @@
         set('bar-sell',  gold_bar.sell);
 
         dot.className = 'live-dot';
-        info.textContent = `อัปเดตล่าสุด: ${update_date} ${update_time}`;
+        info.textContent = `ข้อมูลล่าสุด ${update_date} ${update_time}`;
 
       } catch (err) {
         dot.className = 'live-dot error';
@@ -652,11 +602,9 @@
       } catch(e) {}
     }
 
-    /* เสียง fanfare เต็ม เมื่อได้รางวัล */
     function playWin() {
       try {
         const ctx = getAudio();
-        // Melody line
         [[523,0.00,0.12],[659,0.09,0.13],[784,0.18,0.15],
          [784,0.30,0.10],[1047,0.38,0.24],[1047,0.44,0.12],[1319,0.54,0.40]]
         .forEach(([freq, t, dur]) => {
@@ -668,7 +616,6 @@
           o.connect(g); g.connect(ctx.destination);
           o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + dur + 0.05);
         });
-        // Chord pad
         [261, 329, 392].forEach(freq => {
           const o = ctx.createOscillator(), g = ctx.createGain();
           o.type = 'triangle'; o.frequency.value = freq;
@@ -676,38 +623,6 @@
           g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
           o.connect(g); g.connect(ctx.destination);
           o.start(ctx.currentTime); o.stop(ctx.currentTime + 1.2);
-        });
-      } catch(e) {}
-    }
-
-    /* เสียง lever pull ตอนเริ่มหมุน */
-    function playSpinStart() {
-      try {
-        const ctx = getAudio();
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(110, ctx.currentTime);
-        o.frequency.exponentialRampToValueAtTime(750, ctx.currentTime + 0.16);
-        g.gain.setValueAtTime(0.22, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-        o.connect(g); g.connect(ctx.destination);
-        o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.24);
-      } catch(e) {}
-    }
-
-    /* drum roll ก่อนรีลสุดท้ายหยุด */
-    function playDrumroll() {
-      try {
-        const ctx = getAudio();
-        [0, 0.13, 0.25, 0.36, 0.46, 0.54, 0.61, 0.67, 0.72, 0.765, 0.80, 0.83, 0.855, 0.875]
-        .forEach((t, i) => {
-          const o = ctx.createOscillator(), g = ctx.createGain();
-          o.type = 'triangle';
-          o.frequency.value = 100 + i * 7;
-          g.gain.setValueAtTime(0.18 + i * 0.006, ctx.currentTime + t);
-          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.06);
-          o.connect(g); g.connect(ctx.destination);
-          o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.07);
         });
       } catch(e) {}
     }
@@ -743,7 +658,6 @@
       const overlay = document.getElementById('prizeRevealOverlay');
       overlay.classList.add('open');
       launchConfetti(overlay);
-      // Countdown + auto-close after 15 s
       let secs = 15;
       const hint = document.getElementById('prizeRevealHint');
       hint.textContent = `แตะเพื่อปิด · ${secs}s`;
