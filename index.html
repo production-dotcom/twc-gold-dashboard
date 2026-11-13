@@ -447,8 +447,6 @@
     const OFFICIAL_URL = 'https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false';
     const CHNWT_URL = 'https://api.chnwt.dev/thai-gold-api/latest';
 
-    const proxy1 = (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u);
-    const proxy2 = (u) => 'https://corsproxy.io/?' + encodeURIComponent(u);
 
     const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const ORNAMENT_BUY_DISCOUNT = 4500;
@@ -475,19 +473,26 @@
       };
     }
 
+    // gold.json อยู่ข้างหน้านี้ (GitHub Actions ดึงจาก API ทวีชัย ๙ ทุก 15 นาที) — โดเมนเดียวกัน ไม่ติด CORS
+    function parseLocal(d) {
+      if (d?.status !== 'success' || !d.buy || !d.sell) return null;
+      return {
+        gold:     { buy: fmt(d.buy - ORNAMENT_BUY_DISCOUNT), sell: fmt(d.sell) },
+        gold_bar: { buy: fmt(d.buy),                         sell: fmt(d.sell) },
+        update_date: '', update_time: String(d.updated_at || '')
+      };
+    }
+
     const SOURCES = [
-      { url: proxy1(OFFICIAL_URL), parse: parseOfficial },
-      { url: proxy2(OFFICIAL_URL), parse: parseOfficial },
-      { url: OFFICIAL_URL,         parse: parseOfficial },
-      { url: CHNWT_URL,            parse: parseChnwt },
-      { url: proxy1(CHNWT_URL),    parse: parseChnwt },
-      { url: proxy2(CHNWT_URL),    parse: parseChnwt }
+      { url: 'gold.json?t=' + Date.now(), parse: parseLocal, fresh: true },
+      { url: CHNWT_URL,                   parse: parseChnwt }
     ];
 
     async function fetchWithFallback() {
       for (const src of SOURCES) {
         try {
-          const res = await fetch(src.url, { cache: 'no-store' });
+          const url = src.fresh ? 'gold.json?t=' + Date.now() : src.url;
+          const res = await fetch(url, { cache: 'no-store' });
           const data = await res.json();
           const parsed = src.parse(data);
           if (parsed) return parsed;
