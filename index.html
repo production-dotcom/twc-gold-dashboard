@@ -483,7 +483,14 @@
       };
     }
 
+    // API ทวีชัย ๙ ตรง (สดทุกนาที) → ถ้าไม่ได้ ใช้ gold.json ที่ Actions เขียน
+    function parseApi(d) {
+      if (!d?.ok || !d.barBuy || !d.barSell) return null;
+      return parseLocal({ status: 'success', buy: d.barBuy, sell: d.barSell, updated_at: d.updated });
+    }
+
     const SOURCES = [
+      { url: 'https://admin.twc9sai5.com/api/gold-price', parse: parseApi },
       { url: 'gold.json?t=' + Date.now(), parse: parseLocal, fresh: true },
       { url: CHNWT_URL,                   parse: parseChnwt }
     ];
