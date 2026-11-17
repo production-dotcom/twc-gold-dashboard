@@ -34,13 +34,37 @@ def to_num(v):
     return None
 
 
-def main():
-    req = urllib.request.Request(SOURCE, headers={
+ASSOC = 'https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false'
+
+
+def get_json(url):
+    req = urllib.request.Request(url, headers={
         'User-Agent': 'TWC9-Dashboard/1.0 (+https://github.com)',
         'Accept': 'application/json',
     })
     with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-        g = json.loads(resp.read().decode('utf-8'))
+        return json.loads(resp.read().decode('utf-8'))
+
+
+def from_assoc():
+    """สำรอง: API เราล่ม (เช่น Cloud Run ดับ) → อ่าน JSON สมาคมตรง แปลงเป็นรูปแบบเดียวกับ API เรา"""
+    j = get_json(ASSOC)
+    t = str(j.get('asTime') or '')
+    upd = ('%s/%s/%d เวลา %s น. (ครั้งที่ %s)' % (t[8:10], t[5:7], int(t[:4]) + 543, t[11:16], j.get('seq') or '?')
+           if len(t) >= 16 else '')
+    return {'ok': True, 'source': 'สมาคมค้าทองคำ (สำรอง)', 'barBuy': j.get('bL_BuyPrice'), 'barSell': j.get('bL_SellPrice'),
+            'ornamentBuy': j.get('oM965_BuyPrice'), 'ornamentSell': j.get('oM965_SellPrice'), 'updated': upd,
+            'changeToday': j.get('priceChangeFromPrevDayLast'), 'changeLast': j.get('priceChangeFromPrevRow')}
+
+
+def main():
+    try:
+        g = get_json(SOURCE)
+        if not (isinstance(g, dict) and g.get('ok')):
+            raise ValueError('API เราไม่มีราคา')
+    except Exception as e:
+        print('API เราใช้ไม่ได้ (%s) — ใช้สมาคมตรง' % e, file=sys.stderr)
+        g = from_assoc()
 
     if not isinstance(g, dict) or not g.get('ok'):
         print('API เราไม่มีราคา: %s' % (g.get('error') if isinstance(g, dict) else 'bad response'), file=sys.stderr)
@@ -62,6 +86,8 @@ def main():
         'ornamentBuy': to_num(g.get('ornamentBuy')),
         'ornamentSell': to_num(g.get('ornamentSell')),
         'diff': g.get('diff'),
+        'changeToday': g.get('changeToday'),
+        'changeLast': g.get('changeLast'),
         'stale': bool(g.get('stale')),
         'manual': bool(g.get('manual')),
         'estimated': bool(g.get('estimated')),

@@ -88,6 +88,14 @@
       color: rgba(255,255,255,0.58);
     }
 
+    /* ราคาขึ้น/ลงวันนี้ (แบบเว็บสมาคม) */
+    .change-row { display: flex; gap: 1.2vh; justify-content: center; margin-top: 0.5vh; }
+    .change-row[hidden] { display: none; }
+    .chg { font-size: 2.1vh; font-weight: 700; padding: 0.25vh 1.1vh; border-radius: 99px;
+           background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); white-space: nowrap; }
+    .chg.up   { color: #4ade80; background: rgba(74,222,128,0.14); }
+    .chg.down { color: #f87171; background: rgba(248,113,113,0.14); }
+
     /* ══════════════════════════════════════════
        SECTIONS 2-4 – Price Rows
     ══════════════════════════════════════════ */
@@ -341,6 +349,10 @@
       <div class="live-dot" id="live-dot"></div>
       <span id="update-info">กำลังโหลดข้อมูล...</span>
     </div>
+    <div class="change-row" id="change-row" hidden>
+      <span class="chg" id="chg-today"></span>
+      <span class="chg" id="chg-last"></span>
+    </div>
   </div>
 
   <!-- ══ SECTIONS 2-4: Price Rows ══ -->
@@ -443,70 +455,69 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // ── Data sources, each normalized to { gold:{buy,sell}, gold_bar:{buy,sell}, update_date, update_time } ──
-    const OFFICIAL_URL = 'https://www.goldtraders.or.th/api/GoldPrices/Latest?readjson=false';
-    const CHNWT_URL = 'https://api.chnwt.dev/thai-gold-api/latest';
-
-
     const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const ORNAMENT_BUY_DISCOUNT = 4500;
 
-    function parseOfficial(d) {
-      if (!d || !d.bL_BuyPrice) return null;
-      const t = new Date(d.asTime);
-      return {
-        gold:     { buy: fmt(d.bL_BuyPrice - ORNAMENT_BUY_DISCOUNT), sell: fmt(d.bL_SellPrice) },
-        gold_bar: { buy: fmt(d.bL_BuyPrice),                         sell: fmt(d.bL_SellPrice) },
-        update_date: t.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-        update_time: 'เวลา ' + t.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.'
-      };
-    }
-
-    function parseChnwt(d) {
-      if (d?.status !== 'success' || !d.response?.price?.gold_bar?.buy) return null;
-      const { price, update_date, update_time } = d.response;
-      const barBuy = Number(String(price.gold_bar.buy).replace(/,/g, ''));
-      return {
-        gold:     { buy: fmt(barBuy - ORNAMENT_BUY_DISCOUNT), sell: price.gold_bar.sell },
-        gold_bar: price.gold_bar,
-        update_date, update_time
-      };
-    }
-
-    // gold.json อยู่ข้างหน้านี้ (GitHub Actions ดึงจาก API ทวีชัย ๙ ทุก 15 นาที) — โดเมนเดียวกัน ไม่ติด CORS
+    // ── แหล่งราคา (เรียงตามความสด) — ล้มตัวหนึ่งก็ไปตัวถัดไป ──
+    // 1-2) API ทวีชัย ๙ (2 service แยกกันบน Cloud Run)  3) gold.json ที่ GitHub Actions เขียนไว้ข้างหน้านี้
     function parseLocal(d) {
       if (d?.status !== 'success' || !d.buy || !d.sell) return null;
       return {
         gold:     { buy: fmt(d.buy - ORNAMENT_BUY_DISCOUNT), sell: fmt(d.sell) },
         gold_bar: { buy: fmt(d.buy),                         sell: fmt(d.sell) },
-        update_date: '', update_time: String(d.updated_at || '')
+        update_date: '', update_time: String(d.updated_at || ''),
+        changeToday: d.changeToday, changeLast: d.changeLast,
+        ageSec: d.fetched_at ? Date.now() / 1000 - d.fetched_at : 0
       };
     }
-
-    // API ทวีชัย ๙ ตรง (สดทุกนาที) → ถ้าไม่ได้ ใช้ gold.json ที่ Actions เขียน
     function parseApi(d) {
       if (!d?.ok || !d.barBuy || !d.barSell) return null;
-      return parseLocal({ status: 'success', buy: d.barBuy, sell: d.barSell, updated_at: d.updated });
+      const r = parseLocal({ status: 'success', buy: d.barBuy, sell: d.barSell, updated_at: d.updated,
+                             changeToday: d.changeToday, changeLast: d.changeLast });
+      r.ageSec = d.ageSec || 0;
+      return r;
     }
 
     const SOURCES = [
-      { url: 'https://admin.twc9sai5.com/api/gold-price', parse: parseApi },
-      { url: 'gold.json?t=' + Date.now(), parse: parseLocal, fresh: true },
-      { url: CHNWT_URL,                   parse: parseChnwt }
+      { url: () => 'https://admin.twc9sai5.com/api/gold-price', parse: parseApi },
+      { url: () => 'https://app.twc9sai5.com/api/gold-price',   parse: parseApi },
+      { url: () => 'gold.json?t=' + Date.now(),                 parse: parseLocal }
     ];
+
+    async function fetchJson(url, ms) {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), ms);
+      try {
+        const res = await fetch(url, { cache: 'no-store', signal: ctl.signal });
+        return await res.json();
+      } finally { clearTimeout(timer); }
+    }
 
     async function fetchWithFallback() {
       for (const src of SOURCES) {
         try {
-          const url = src.fresh ? 'gold.json?t=' + Date.now() : src.url;
-          const res = await fetch(url, { cache: 'no-store' });
-          const data = await res.json();
-          const parsed = src.parse(data);
+          const parsed = src.parse(await fetchJson(src.url(), 8000));
           if (parsed) return parsed;
         } catch (e) { continue; }
       }
       throw new Error('No source returned prices');
     }
+
+    // ── ราคาขึ้น/ลง ──
+    function showChange(id, label, v) {
+      const el = document.getElementById(id);
+      if (v === null || v === undefined || isNaN(Number(v))) { el.hidden = true; return false; }
+      v = Number(v);
+      el.hidden = false;
+      el.className = 'chg' + (v > 0 ? ' up' : v < 0 ? ' down' : '');
+      el.textContent = label + ' ' + (v > 0 ? '▲ +' : v < 0 ? '▼ ' : '● ') + v.toLocaleString('en-US');
+      return true;
+    }
+
+    // ── จำราคาล่าสุดไว้ในเครื่อง: เปิดจอใหม่ตอนเน็ต/เซิร์ฟเวอร์ล่ม ยังมีตัวเลขโชว์ ──
+    const CACHE_KEY = 'twcGoldLast';
+    function saveCache(p) { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ p, at: Date.now() })); } catch (e) {} }
+    function loadCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { return null; } }
 
     // ── Fetch prices ──
     async function fetchPrices() {
@@ -514,7 +525,9 @@
       const info = document.getElementById('update-info');
 
       try {
-        const { gold, gold_bar, update_date, update_time } = await fetchWithFallback();
+        const p = await fetchWithFallback();
+        const { gold, gold_bar, update_date, update_time } = p;
+        saveCache(p);
 
         const set = (id, val) => {
           const el = document.getElementById(id);
@@ -529,8 +542,12 @@
         set('bar-buy',   gold_bar.buy);
         set('bar-sell',  gold_bar.sell);
 
-        dot.className = 'live-dot';
-        info.textContent = `ข้อมูลล่าสุด ${update_date} ${update_time}`;
+        // ข้อมูลเก่าเกิน 30 นาที (เช่น ได้แค่ gold.json สำรอง) = จุดแดง ให้รู้ว่าอาจไม่ล่าสุด
+        dot.className = (p.ageSec > 1800) ? 'live-dot error' : 'live-dot';
+        info.textContent = `ข้อมูลล่าสุด ${update_date} ${update_time}`.replace(/\s+/g, ' ');
+        const a = showChange('chg-today', 'วันนี้', p.changeToday);
+        const b = showChange('chg-last', 'ครั้งนี้', p.changeLast);
+        document.getElementById('change-row').hidden = !(a || b);
 
       } catch (err) {
         dot.className = 'live-dot error';
@@ -540,6 +557,14 @@
       nextRefresh = Date.now() + INTERVAL_MS;
     }
 
+    (function paintCache() {
+      const c = loadCache();
+      if (!c?.p) return;
+      const { gold, gold_bar, update_date, update_time } = c.p;
+      [['gold-buy', gold.buy], ['gold-sell', gold.sell], ['bar-buy', gold_bar.buy], ['bar-sell', gold_bar.sell]]
+        .forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.textContent = v; });
+      document.getElementById('update-info').textContent = `ข้อมูลล่าสุด ${update_date} ${update_time}`.replace(/\s+/g, ' ');
+    })();
     fetchPrices();
     setInterval(fetchPrices, INTERVAL_MS);
 
